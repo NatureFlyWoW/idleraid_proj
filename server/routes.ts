@@ -1,16 +1,42 @@
 import type { Express } from "express";
-import { createServer, type Server } from "http";
+import type { Server } from "http";
 import { storage } from "./storage";
+import { api } from "@shared/routes";
+import { z } from "zod";
 
-export async function registerRoutes(
-  httpServer: Server,
-  app: Express
-): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+async function seedDatabase() {
+  const existing = await storage.getMessages();
+  if (existing.length === 0) {
+    await storage.createMessage({ content: "Welcome to your new full-stack app!", isSystem: true });
+    await storage.createMessage({ content: "This message comes directly from the PostgreSQL database.", isSystem: false });
+    await storage.createMessage({ content: "Try adding your own message using the form above.", isSystem: false });
+  }
+}
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
+  app.get(api.messages.list.path, async (req, res) => {
+    const messages = await storage.getMessages();
+    res.json(messages);
+  });
+
+  app.post(api.messages.create.path, async (req, res) => {
+    try {
+      const input = api.messages.create.input.parse(req.body);
+      const message = await storage.createMessage(input);
+      res.status(201).json(message);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors[0].message });
+        return;
+      }
+      throw err;
+    }
+  });
+
+  // Seed the database
+  seedDatabase().catch(err => {
+    console.error("Failed to seed database:", err);
+  });
 
   return httpServer;
 }
