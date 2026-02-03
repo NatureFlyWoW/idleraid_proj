@@ -339,7 +339,7 @@ export default function Inventory() {
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   // Fetch character data
-  const { data: character, isLoading: charLoading } = useQuery({
+  const { data: character, isLoading: charLoading, error: charError } = useQuery({
     queryKey: ["character", characterId],
     queryFn: async () => {
       const response = await fetch(
@@ -352,7 +352,7 @@ export default function Inventory() {
   });
 
   // Fetch inventory from API
-  const { data: inventoryData, isLoading: inventoryLoading } = useQuery({
+  const { data: inventoryData, isLoading: inventoryLoading, error: inventoryError } = useQuery({
     queryKey: ["inventory", characterId],
     queryFn: async () => {
       const response = await fetch(
@@ -465,6 +465,35 @@ export default function Inventory() {
     return (
       <div className="min-h-screen bg-[#0a0908] flex items-center justify-center">
         <div className="text-amber-500 font-mono animate-pulse">Loading inventory...</div>
+      </div>
+    );
+  }
+
+  if (charError || inventoryError) {
+    return (
+      <div className="min-h-screen bg-[#0a0908] flex flex-col items-center justify-center gap-4">
+        <pre className="font-mono text-xs leading-tight text-red-500">
+{`╔════════════════════════════════╗
+║      ERROR LOADING DATA        ║
+╚════════════════════════════════╝`}
+        </pre>
+        <div className="text-red-400 font-mono text-sm max-w-md text-center">
+          {charError?.message || inventoryError?.message || "Failed to load inventory"}
+        </div>
+        <div className="flex gap-4">
+          <button
+            onClick={() => navigate("/")}
+            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+          >
+            ← Back to Characters
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

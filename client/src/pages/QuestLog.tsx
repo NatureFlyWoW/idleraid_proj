@@ -571,7 +571,7 @@ export default function QuestLog() {
   const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: character, isLoading: characterLoading } = useQuery({
+  const { data: character, isLoading: characterLoading, error: characterError } = useQuery({
     queryKey: ["character", characterId],
     queryFn: async () => {
       const response = await fetch(
@@ -584,7 +584,7 @@ export default function QuestLog() {
   });
 
   // Fetch active quests from API
-  const { data: apiQuestProgress, isLoading: questsLoading } = useQuery({
+  const { data: apiQuestProgress, isLoading: questsLoading, error: questsError } = useQuery({
     queryKey: ["activeQuests", characterId],
     queryFn: async () => {
       const response = await fetch(
@@ -678,6 +678,35 @@ export default function QuestLog() {
       <div className="min-h-screen bg-[#0a0908] flex items-center justify-center">
         <div className="text-amber-500 font-mono animate-pulse">
           Loading quests...
+        </div>
+      </div>
+    );
+  }
+
+  if (characterError || questsError) {
+    return (
+      <div className="min-h-screen bg-[#0a0908] flex flex-col items-center justify-center gap-4">
+        <pre className="font-mono text-xs leading-tight text-red-500">
+{`╔════════════════════════════════╗
+║      ERROR LOADING DATA        ║
+╚════════════════════════════════╝`}
+        </pre>
+        <div className="text-red-400 font-mono text-sm max-w-md text-center">
+          {characterError?.message || questsError?.message || "Failed to load quests"}
+        </div>
+        <div className="flex gap-4">
+          <button
+            onClick={() => navigate("/")}
+            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+          >
+            ← Back to Characters
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );

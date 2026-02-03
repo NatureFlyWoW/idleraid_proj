@@ -257,7 +257,7 @@ export default function ZoneSelection() {
   const [, navigate] = useLocation();
   const characterId = parseInt(params.id || "0");
 
-  const { data: character, isLoading: charLoading } = useQuery({
+  const { data: character, isLoading: charLoading, error: charError } = useQuery({
     queryKey: ["character", characterId],
     queryFn: async () => {
       const response = await fetch(
@@ -270,7 +270,7 @@ export default function ZoneSelection() {
   });
 
   // Fetch zones from API
-  const { data: apiZones, isLoading: zonesLoading } = useQuery({
+  const { data: apiZones, isLoading: zonesLoading, error: zonesError } = useQuery({
     queryKey: ["zones"],
     queryFn: async () => {
       const response = await fetch(api.zones.list.path);
@@ -305,6 +305,35 @@ export default function ZoneSelection() {
     return (
       <div className="min-h-screen bg-[#0a0908] flex items-center justify-center">
         <div className="text-amber-500 font-mono animate-pulse">Loading zones...</div>
+      </div>
+    );
+  }
+
+  if (charError || zonesError) {
+    return (
+      <div className="min-h-screen bg-[#0a0908] flex flex-col items-center justify-center gap-4">
+        <pre className="font-mono text-xs leading-tight text-red-500">
+{`╔════════════════════════════════╗
+║      ERROR LOADING DATA        ║
+╚════════════════════════════════╝`}
+        </pre>
+        <div className="text-red-400 font-mono text-sm max-w-md text-center">
+          {charError?.message || zonesError?.message || "Failed to load zones"}
+        </div>
+        <div className="flex gap-4">
+          <button
+            onClick={() => navigate("/")}
+            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+          >
+            ← Back to Characters
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

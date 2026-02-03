@@ -401,7 +401,7 @@ export default function DungeonSelection() {
   const [, navigate] = useLocation();
   const characterId = parseInt(params.id || "0");
 
-  const { data: character, isLoading: characterLoading } = useQuery({
+  const { data: character, isLoading: characterLoading, error: characterError } = useQuery({
     queryKey: ["character", characterId],
     queryFn: async () => {
       const response = await fetch(
@@ -414,7 +414,7 @@ export default function DungeonSelection() {
   });
 
   // Fetch dungeons from API
-  const { data: apiDungeons, isLoading: dungeonsLoading } = useQuery({
+  const { data: apiDungeons, isLoading: dungeonsLoading, error: dungeonsError } = useQuery({
     queryKey: ["dungeons"],
     queryFn: async () => {
       const response = await fetch(buildUrl(api.dungeons.list.path));
@@ -456,6 +456,35 @@ export default function DungeonSelection() {
       <div className="min-h-screen bg-[#0a0908] flex items-center justify-center">
         <div className="text-amber-500 font-mono animate-pulse">
           Loading dungeons...
+        </div>
+      </div>
+    );
+  }
+
+  if (characterError || dungeonsError) {
+    return (
+      <div className="min-h-screen bg-[#0a0908] flex flex-col items-center justify-center gap-4">
+        <pre className="font-mono text-xs leading-tight text-red-500">
+{`╔════════════════════════════════╗
+║      ERROR LOADING DATA        ║
+╚════════════════════════════════╝`}
+        </pre>
+        <div className="text-red-400 font-mono text-sm max-w-md text-center">
+          {characterError?.message || dungeonsError?.message || "Failed to load dungeons"}
+        </div>
+        <div className="flex gap-4">
+          <button
+            onClick={() => navigate("/")}
+            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+          >
+            ← Back to Characters
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
