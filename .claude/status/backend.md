@@ -7,6 +7,38 @@
 
 ## Latest Update
 
+## [2026-02-03 16:00]
+- Completed:
+  - **P1: Fix missing storage.users.updateUser function:**
+    - Added updateUser(id, updates) method to IUserStorage interface
+    - Implemented in UserStorage class with proper error handling
+    - Unblocks Test Agent - characters.test.ts now passes (21 tests)
+  - **P2: Implement talent effect application to combat stats:**
+    - Created calculateTalentBonuses() function in StatCalculator.ts
+    - Computes TalentBonuses from character's talent allocation (tree1/2/3Points)
+    - Supports stat_bonus effects (flat and percentage modifiers)
+    - Maps talent stats to bonus fields (strength, agility, crit, damage, etc.)
+    - Integrated into CombatService.ts (runQuestCombat, runDungeonCombat, previewCombat)
+    - Characters now benefit from their talent choices in ALL combat scenarios
+  - **Talent Effects Now Apply To:**
+    - Attributes: STR, AGI, INT, STA, SPI (flat + percentage)
+    - Combat: Melee/Ranged/Spell Power, Crit Chance, Hit Chance, Armor
+    - Resources: Health %, Mana %
+    - Output: Damage %, Healing %
+- Changed:
+  - `server/storage.ts` (MODIFIED - added updateUser method)
+  - `server/game/systems/StatCalculator.ts` (MODIFIED - added calculateTalentBonuses)
+  - `server/game/systems/CombatService.ts` (MODIFIED - integrated talent bonuses)
+- Needs from Coordinator: None
+- Needs from other agents: None
+- Blocked on: Nothing
+- Next:
+  - P3: Implement ability_unlock, ability_modifier, and proc talent effects
+  - Add more unit tests for talent stat bonuses
+  - Consider adding talent effect visual indicators in combat log
+
+**For Coordinator:** Talent system is now functional! Characters with talented builds will see stat increases in combat. The infrastructure supports all stat_bonus effects. Future work: ability modifications and proc-based talents require CombatSimulator enhancements.
+
 ## [2026-02-02 19:30]
 - Completed:
   - **P0 StatCalculator NaN Bug Fix (VERIFIED):**
