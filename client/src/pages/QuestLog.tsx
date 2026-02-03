@@ -17,6 +17,7 @@ import {
   Coins,
   Star,
 } from "lucide-react";
+import { QuestCardSkeleton } from "@/components/game/LoadingStates";
 
 // ============================================================================
 // QUEST LOG PAGE - Active quests with details and progress
@@ -675,9 +676,40 @@ export default function QuestLog() {
 
   if (characterLoading || questsLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex items-center justify-center">
-        <div className="text-amber-500 font-mono animate-pulse">
-          Loading quests...
+      <div className="min-h-screen bg-[#0a0908] p-4">
+        <div className="max-w-7xl mx-auto">
+          {/* Header skeleton */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="w-32 h-6 bg-stone-700/30 rounded animate-pulse"></div>
+            <div className="w-48 h-6 bg-stone-700/30 rounded animate-pulse"></div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Quest list skeleton */}
+            <div className="space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <QuestCardSkeleton key={i} />
+              ))}
+            </div>
+
+            {/* Quest detail skeleton */}
+            <div className="lg:col-span-2">
+              <div className="bg-stone-900/50 border-2 border-stone-600 p-6">
+                <div className="w-3/4 h-8 bg-stone-700/30 rounded mb-4 animate-pulse"></div>
+                <div className="space-y-2 mb-6">
+                  <div className="w-full h-4 bg-stone-700/30 rounded animate-pulse"></div>
+                  <div className="w-5/6 h-4 bg-stone-700/30 rounded animate-pulse"></div>
+                  <div className="w-4/6 h-4 bg-stone-700/30 rounded animate-pulse"></div>
+                </div>
+                <div className="w-48 h-6 bg-stone-700/30 rounded mb-3 animate-pulse"></div>
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="w-full h-6 bg-stone-700/30 rounded animate-pulse"></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );

@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Trophy,
 } from "lucide-react";
+import { DungeonCardSkeleton } from "@/components/game/LoadingStates";
 
 // ============================================================================
 // DUNGEON SELECTION PAGE - List of available dungeons
@@ -453,9 +454,20 @@ export default function DungeonSelection() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex items-center justify-center">
-        <div className="text-amber-500 font-mono animate-pulse">
-          Loading dungeons...
+      <div className="min-h-screen bg-[#0a0908] p-4">
+        <div className="max-w-6xl mx-auto">
+          {/* Header skeleton */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="w-32 h-6 bg-stone-700/30 rounded animate-pulse"></div>
+            <div className="w-48 h-6 bg-stone-700/30 rounded animate-pulse"></div>
+          </div>
+
+          {/* Dungeons skeleton */}
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <DungeonCardSkeleton key={i} />
+            ))}
+          </div>
         </div>
       </div>
     );
