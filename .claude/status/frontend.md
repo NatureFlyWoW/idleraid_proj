@@ -7,6 +7,26 @@
 
 ## Latest Update
 
+## [2026-02-03 17:25]
+- Completed:
+  - **QuestLog API Wiring:**
+    - Added useQuery to fetch active quests from `/api/characters/:characterId/quests/active`
+    - Maps API CharacterQuestProgress response to local Quest interface
+    - Updates objective progress from API progress array
+    - Falls back to SAMPLE_QUESTS if API returns empty (for development)
+    - Added useMutation for abandoning quests (DELETE endpoint)
+    - Invalidates quest cache and updates selection after quest abandonment
+    - Added confirmation dialog for quest abandonment
+    - Updated loading state to show during quest data fetch
+- Changed:
+  - `client/src/pages/QuestLog.tsx` (MODIFIED - API integration)
+- Needs from Coordinator: None
+- Needs from other agents:
+  - Backend: Quest details endpoint would be useful (GET /api/quests/:id) for richer quest data
+  - Backend: Quest turn-in endpoint for completing quests
+- Blocked on: Nothing
+- Next: Add error boundaries to pages, continue API wiring for remaining components
+
 ## [2026-02-03 16:45]
 - Completed:
   - **DungeonSelection API Wiring:**
