@@ -1,35 +1,31 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  User,
-  Map,
-  Swords,
-  Backpack,
-  Castle,
-  Trophy,
-  Settings,
-  ArrowLeft,
-} from "lucide-react";
 import { api, buildUrl } from "@shared/routes";
 import { cn } from "@/lib/utils";
 import { OfflineProgressModal, useOfflineProgress } from "@/components/game/OfflineProgressModal";
+import { ASCIIHeader, TerminalPanel, TerminalButton } from "@/components/game/TerminalPanel";
 
-// Class colors
+// WoW Class colors
 const classColors: Record<string, string> = {
-  warrior: "text-amber-600",
-  paladin: "text-pink-400",
-  hunter: "text-green-500",
-  rogue: "text-yellow-500",
-  priest: "text-gray-400",
-  mage: "text-cyan-400",
-  druid: "text-orange-500",
+  warrior: "#C79C6E",
+  paladin: "#F58CBA",
+  hunter: "#ABD473",
+  rogue: "#FFF569",
+  priest: "#FFFFFF",
+  mage: "#69CCF0",
+  druid: "#FF7D0A",
+};
+
+// Class icons
+const classIcons: Record<string, string> = {
+  warrior: "⚔",
+  paladin: "✚",
+  hunter: "⚑",
+  rogue: "†",
+  priest: "✞",
+  mage: "★",
+  druid: "❀",
 };
 
 interface Character {
@@ -53,33 +49,62 @@ interface Character {
   activityCompletesAt: string | null;
 }
 
-function StatBar({
+// ASCII Progress Bar
+function ASCIIBar({
+  current,
+  max,
+  width = 20,
+  filledChar = "█",
+  emptyChar = "░",
+  color = "text-green-400",
+}: {
+  current: number;
+  max: number;
+  width?: number;
+  filledChar?: string;
+  emptyChar?: string;
+  color?: string;
+}) {
+  const percent = max > 0 ? current / max : 0;
+  const filled = Math.round(percent * width);
+  const empty = width - filled;
+
+  return (
+    <span className={cn("font-mono", color)}>
+      [{filledChar.repeat(filled)}
+      <span className="text-stone-700">{emptyChar.repeat(empty)}</span>]
+    </span>
+  );
+}
+
+// Stat row with ASCII bar
+function StatRow({
   label,
   current,
   max,
   color,
+  showNumbers = true,
 }: {
   label: string;
   current: number;
   max: number;
   color: string;
+  showNumbers?: boolean;
 }) {
-  const percent = max > 0 ? (current / max) * 100 : 0;
   return (
-    <div className="space-y-1">
-      <div className="flex justify-between text-sm">
-        <span className={color}>{label}</span>
-        <span>
-          {current.toLocaleString()} / {max.toLocaleString()}
+    <div className="flex items-center justify-between text-sm font-mono">
+      <span className={cn("uppercase w-16", color)}>{label}</span>
+      <ASCIIBar current={current} max={max} width={15} color={color} />
+      {showNumbers && (
+        <span className="text-green-600 text-xs w-20 text-right">
+          {current.toLocaleString()}/{max.toLocaleString()}
         </span>
-      </div>
-      <Progress value={percent} className="h-3" />
+      )}
     </div>
   );
 }
 
 function CharacterPanel({ character }: { character: Character }) {
-  // Get resource type based on class
   const resourceType =
     character.characterClass === "warrior"
       ? "Rage"
@@ -92,97 +117,110 @@ function CharacterPanel({ character }: { character: Character }) {
       ? "text-red-500"
       : character.characterClass === "rogue"
       ? "text-yellow-500"
-      : "text-blue-500";
+      : "text-blue-400";
+
+  const classColor = classColors[character.characterClass] || "#22c55e";
+  const classIcon = classIcons[character.characterClass] || "?";
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className={cn(classColors[character.characterClass])}>
-            {character.name}
-          </CardTitle>
-          <Badge variant="outline">Level {character.level}</Badge>
+    <TerminalPanel variant="green">
+      {/* Character Header */}
+      <div className="text-center border-b border-green-800 pb-3 mb-3">
+        <pre className="text-3xl mb-1" style={{ color: classColor }}>
+          {classIcon}
+        </pre>
+        <h2
+          className="text-xl font-bold uppercase tracking-wider"
+          style={{ color: classColor }}
+        >
+          {character.name}
+        </h2>
+        <div className="flex items-center justify-center gap-2 mt-1">
+          <span className="text-green-600 text-sm capitalize">
+            {character.characterClass}
+          </span>
+          <span className="text-yellow-500 text-sm">
+            [LVL {character.level}]
+          </span>
         </div>
-        <p className="text-muted-foreground capitalize">
-          {character.characterClass}
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Health */}
-        <StatBar
-          label="Health"
+      </div>
+
+      {/* Vital Bars */}
+      <div className="space-y-2 mb-4">
+        <StatRow
+          label="HP"
           current={character.currentHealth}
           max={character.maxHealth}
           color="text-red-500"
         />
-
-        {/* Resource */}
-        <StatBar
-          label={resourceType}
+        <StatRow
+          label={resourceType.slice(0, 4)}
           current={character.currentResource}
           max={character.maxResource}
           color={resourceColor}
         />
-
-        {/* XP */}
-        <StatBar
-          label="Experience"
+        <StatRow
+          label="XP"
           current={character.experience % 1000}
           max={1000}
-          color="text-purple-500"
+          color="text-purple-400"
         />
+      </div>
 
-        {/* Gold */}
-        <div className="flex justify-between pt-2 border-t">
-          <span className="text-yellow-600 font-medium">Gold</span>
-          <span className="font-bold">{character.gold.toLocaleString()}</span>
-        </div>
+      {/* Gold */}
+      <div className="flex justify-between items-center py-2 border-t border-green-800">
+        <span className="text-yellow-600 uppercase text-sm">Gold</span>
+        <span className="text-yellow-400 font-bold">
+          {character.gold.toLocaleString()} G
+        </span>
+      </div>
 
-        {/* Attributes */}
-        <div className="grid grid-cols-2 gap-2 text-sm pt-2 border-t">
+      {/* Attributes */}
+      <div className="border-t border-green-800 pt-3 mt-2">
+        <div className="text-xs text-green-600 uppercase mb-2">Attributes</div>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Strength</span>
-            <span className="font-medium">{character.baseStrength}</span>
+            <span className="text-green-600">STR</span>
+            <span className="text-green-400">{character.baseStrength}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Agility</span>
-            <span className="font-medium">{character.baseAgility}</span>
+            <span className="text-green-600">AGI</span>
+            <span className="text-green-400">{character.baseAgility}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Intellect</span>
-            <span className="font-medium">{character.baseIntellect}</span>
+            <span className="text-green-600">INT</span>
+            <span className="text-green-400">{character.baseIntellect}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Stamina</span>
-            <span className="font-medium">{character.baseStamina}</span>
+            <span className="text-green-600">STA</span>
+            <span className="text-green-400">{character.baseStamina}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Spirit</span>
-            <span className="font-medium">{character.baseSpirit}</span>
+            <span className="text-green-600">SPI</span>
+            <span className="text-green-400">{character.baseSpirit}</span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </TerminalPanel>
   );
 }
 
 function ActivityPanel({ character }: { character: Character }) {
   if (!character.currentActivity) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Swords className="w-5 h-5" />
-            Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-center py-8 text-muted-foreground">
-          <p className="mb-4">Your character is idle.</p>
-          <p className="text-sm">
-            Start an activity from the World Map or Dungeons tab!
+      <TerminalPanel variant="cyan">
+        <div className="text-center">
+          <pre className="text-cyan-400 text-xs mb-2">
+            ╔════════════════════╗{"\n"}
+            ║     ACTIVITY       ║{"\n"}
+            ╚════════════════════╝
+          </pre>
+          <p className="text-cyan-500 mb-2">Character is idle.</p>
+          <p className="text-cyan-700 text-xs">
+            Select an activity from the menu below.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </TerminalPanel>
     );
   }
 
@@ -196,109 +234,233 @@ function ActivityPanel({ character }: { character: Character }) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Swords className="w-5 h-5 animate-pulse" />
-          Current Activity
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="text-center">
-          <p className="text-lg font-medium capitalize">
-            {character.currentActivity}
-          </p>
-          <Progress value={progressPercent} className="mt-2" />
-          <p className="text-sm text-muted-foreground mt-2">
-            {Math.floor(progressPercent)}% complete
-          </p>
+    <TerminalPanel variant="yellow">
+      <div className="text-center">
+        <pre className="text-yellow-400 text-xs mb-2">
+          ╔════════════════════╗{"\n"}
+          ║  CURRENT ACTIVITY  ║{"\n"}
+          ╚════════════════════╝
+        </pre>
+        <p className="text-yellow-400 uppercase font-bold mb-2">
+          {character.currentActivity}
+        </p>
+        <div className="mb-2">
+          <ASCIIBar
+            current={progressPercent}
+            max={100}
+            width={20}
+            color="text-yellow-400"
+          />
         </div>
-        <Button variant="destructive" className="w-full">
-          Stop Activity
-        </Button>
-      </CardContent>
-    </Card>
+        <p className="text-yellow-600 text-xs mb-3">
+          {Math.floor(progressPercent)}% complete
+        </p>
+        <TerminalButton variant="danger" className="w-full text-xs">
+          [X] Stop Activity
+        </TerminalButton>
+      </div>
+    </TerminalPanel>
   );
 }
 
-function WorldMapTab() {
-  return (
-    <div className="grid gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Elwynn Forest</CardTitle>
-          <p className="text-muted-foreground">Level 1-10 | Starting Zone</p>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm mb-4">
-            The peaceful forests around Stormwind, home to wolves and kobolds.
-          </p>
-          <Button className="w-full">
-            Start Questing
-          </Button>
-        </CardContent>
-      </Card>
+type TabType = "character" | "world" | "dungeons" | "inventory" | "quests" | "talents";
 
-      <Card className="opacity-50">
-        <CardHeader>
-          <CardTitle>Westfall</CardTitle>
-          <p className="text-muted-foreground">Level 10-20 | Locked</p>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm">
-            Reach level 10 to unlock this zone.
-          </p>
-        </CardContent>
-      </Card>
+function TabButton({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: string;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "px-3 py-2 font-mono text-xs uppercase tracking-wider transition-all border-b-2",
+        active
+          ? "text-yellow-400 border-yellow-500 bg-yellow-500/10"
+          : "text-green-600 border-transparent hover:text-green-400 hover:border-green-600"
+      )}
+    >
+      <span className="mr-1">{icon}</span>
+      <span className="hidden sm:inline">{label}</span>
+    </button>
+  );
+}
+
+function WorldMapTab({ navigate, characterId }: { navigate: (path: string) => void; characterId: number }) {
+  return (
+    <div className="space-y-4">
+      <TerminalPanel variant="green">
+        <div className="flex justify-between items-start mb-3">
+          <div>
+            <h3 className="text-green-400 font-bold uppercase">Elwynn Forest</h3>
+            <p className="text-green-600 text-xs">Level 1-10 | Starting Zone</p>
+          </div>
+          <span className="text-green-500">[UNLOCKED]</span>
+        </div>
+        <p className="text-green-500 text-sm mb-3">
+          The peaceful forests around Stormwind, home to wolves and kobolds.
+        </p>
+        <TerminalButton
+          variant="primary"
+          className="w-full"
+          onClick={() => navigate(`/character/${characterId}/zones`)}
+        >
+          [▶] View Zones
+        </TerminalButton>
+      </TerminalPanel>
+
+      <TerminalPanel variant="green" className="opacity-50">
+        <div className="flex justify-between items-start mb-3">
+          <div>
+            <h3 className="text-green-700 font-bold uppercase">Westfall</h3>
+            <p className="text-green-800 text-xs">Level 10-20 | Locked</p>
+          </div>
+          <span className="text-red-600">[LOCKED]</span>
+        </div>
+        <p className="text-green-700 text-sm">
+          Reach level 10 to unlock this zone.
+        </p>
+      </TerminalPanel>
     </div>
   );
 }
 
-function DungeonsTab() {
+function DungeonsTab({ navigate, characterId }: { navigate: (path: string) => void; characterId: number }) {
   return (
-    <div className="grid gap-4">
-      <Card className="opacity-50">
-        <CardHeader>
-          <CardTitle>Deadmines</CardTitle>
-          <p className="text-muted-foreground">Level 15-21 | Locked</p>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm">
-            Reach level 15 to enter this dungeon.
-          </p>
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      <TerminalPanel variant="cyan" className="opacity-50">
+        <div className="flex justify-between items-start mb-3">
+          <div>
+            <h3 className="text-cyan-700 font-bold uppercase">Deadmines</h3>
+            <p className="text-cyan-800 text-xs">Level 15-21 | Locked</p>
+          </div>
+          <span className="text-red-600">[LOCKED]</span>
+        </div>
+        <p className="text-cyan-700 text-sm">
+          Reach level 15 to enter this dungeon.
+        </p>
+      </TerminalPanel>
 
-      <Card className="opacity-50">
-        <CardHeader>
-          <CardTitle>Wailing Caverns</CardTitle>
-          <p className="text-muted-foreground">Level 15-25 | Locked</p>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm">
-            Reach level 15 to enter this dungeon.
-          </p>
-        </CardContent>
-      </Card>
+      <TerminalButton
+        variant="secondary"
+        className="w-full"
+        onClick={() => navigate(`/character/${characterId}/dungeons`)}
+      >
+        [▶] View All Dungeons
+      </TerminalButton>
     </div>
   );
 }
 
-function InventoryTab() {
+function InventoryTab({ navigate, characterId }: { navigate: (path: string) => void; characterId: number }) {
   return (
-    <div className="text-center py-12 text-muted-foreground">
-      <Backpack className="w-12 h-12 mx-auto mb-4" />
-      <p>Your inventory is empty.</p>
-      <p className="text-sm mt-2">
+    <div className="text-center py-8">
+      <pre className="text-green-600 text-4xl mb-4">◇</pre>
+      <p className="text-green-500 mb-2">Your inventory is empty.</p>
+      <p className="text-green-700 text-sm mb-4">
         Complete activities to earn items!
       </p>
+      <TerminalButton
+        variant="primary"
+        onClick={() => navigate(`/character/${characterId}/inventory`)}
+      >
+        [▶] Open Inventory
+      </TerminalButton>
     </div>
+  );
+}
+
+function QuestsTab({ navigate, characterId }: { navigate: (path: string) => void; characterId: number }) {
+  return (
+    <div className="text-center py-8">
+      <pre className="text-yellow-600 text-4xl mb-4">!</pre>
+      <p className="text-yellow-500 mb-2">No active quests.</p>
+      <p className="text-yellow-700 text-sm mb-4">
+        Explore zones to find quests!
+      </p>
+      <TerminalButton
+        variant="secondary"
+        onClick={() => navigate(`/character/${characterId}/quests`)}
+      >
+        [▶] Quest Log
+      </TerminalButton>
+    </div>
+  );
+}
+
+function TalentsTab({ navigate, characterId, level }: { navigate: (path: string) => void; characterId: number; level: number }) {
+  if (level < 10) {
+    return (
+      <div className="text-center py-8">
+        <pre className="text-green-700 text-4xl mb-4">★</pre>
+        <p className="text-green-600 mb-2">Talents locked.</p>
+        <p className="text-green-800 text-sm">
+          Reach level 10 to unlock the talent system.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-center py-8">
+      <pre className="text-yellow-400 text-4xl mb-4">★</pre>
+      <p className="text-yellow-500 mb-2">Talents available!</p>
+      <p className="text-yellow-700 text-sm mb-4">
+        Customize your character's abilities.
+      </p>
+      <TerminalButton
+        variant="secondary"
+        onClick={() => navigate(`/character/${characterId}/talents`)}
+      >
+        [▶] Open Talent Trees
+      </TerminalButton>
+    </div>
+  );
+}
+
+function CharacterTab({ character }: { character: Character }) {
+  return (
+    <TerminalPanel variant="green">
+      <pre className="text-green-600 text-xs mb-4">
+        ╔══════════════════════════════════════╗{"\n"}
+        ║        CHARACTER DETAILS             ║{"\n"}
+        ╚══════════════════════════════════════╝
+      </pre>
+      <div className="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <div className="text-green-600 uppercase text-xs mb-1">Name</div>
+          <div className="text-green-400">{character.name}</div>
+        </div>
+        <div>
+          <div className="text-green-600 uppercase text-xs mb-1">Class</div>
+          <div className="text-green-400 capitalize">{character.characterClass}</div>
+        </div>
+        <div>
+          <div className="text-green-600 uppercase text-xs mb-1">Level</div>
+          <div className="text-yellow-400">{character.level}</div>
+        </div>
+        <div>
+          <div className="text-green-600 uppercase text-xs mb-1">Total XP</div>
+          <div className="text-purple-400">{character.experience.toLocaleString()}</div>
+        </div>
+      </div>
+      <p className="text-green-700 text-xs mt-4">
+        Equipment and detailed stats will be displayed here.
+      </p>
+    </TerminalPanel>
   );
 }
 
 export default function Game() {
   const params = useParams<{ characterId: string }>();
   const [, navigate] = useLocation();
+  const [activeTab, setActiveTab] = useState<TabType>("world");
 
   const characterId = parseInt(params.characterId || "0");
 
@@ -331,12 +493,25 @@ export default function Game() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="min-h-screen bg-black p-4">
         <div className="max-w-6xl mx-auto">
-          <Skeleton className="h-8 w-48 mb-8" />
+          <ASCIIHeader variant="double">Loading...</ASCIIHeader>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Skeleton className="h-96" />
-            <Skeleton className="h-96 col-span-2" />
+            <TerminalPanel variant="green">
+              <div className="animate-pulse space-y-4">
+                <div className="h-8 bg-green-900/30 rounded"></div>
+                <div className="h-4 bg-green-900/30 rounded w-3/4"></div>
+                <div className="h-4 bg-green-900/30 rounded w-1/2"></div>
+              </div>
+            </TerminalPanel>
+            <div className="lg:col-span-2">
+              <TerminalPanel variant="green">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-8 bg-green-900/30 rounded"></div>
+                  <div className="h-32 bg-green-900/30 rounded"></div>
+                </div>
+              </TerminalPanel>
+            </div>
           </div>
         </div>
       </div>
@@ -345,33 +520,38 @@ export default function Game() {
 
   if (!character) {
     return (
-      <div className="container mx-auto py-8 px-4 text-center">
-        <p className="text-xl mb-4">Character not found</p>
-        <Button onClick={() => navigate("/")}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Character Select
-        </Button>
+      <div className="min-h-screen bg-black p-4">
+        <div className="max-w-6xl mx-auto text-center py-12">
+          <ASCIIHeader variant="double">Error</ASCIIHeader>
+          <TerminalPanel variant="red" className="max-w-md mx-auto">
+            <p className="text-red-400 mb-4">Character not found.</p>
+            <TerminalButton variant="secondary" onClick={() => navigate("/")}>
+              [←] Back to Character Select
+            </TerminalButton>
+          </TerminalPanel>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-4 px-4">
+    <div className="min-h-screen bg-black p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" onClick={() => navigate("/")}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Characters
-          </Button>
-          <h1 className="text-2xl font-bold">Idle Raiders</h1>
-          <Button variant="ghost" size="icon">
-            <Settings className="w-5 h-5" />
-          </Button>
+        <div className="flex items-center justify-between mb-4">
+          <TerminalButton variant="secondary" onClick={() => navigate("/")}>
+            [←] Characters
+          </TerminalButton>
+          <h1 className="text-xl font-bold text-yellow-400 uppercase tracking-wider font-mono">
+            Idle Raiders
+          </h1>
+          <TerminalButton variant="secondary">
+            [⚙] Settings
+          </TerminalButton>
         </div>
 
         {/* Main Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Left Sidebar - Character Info */}
           <div className="space-y-4">
             <CharacterPanel character={character} />
@@ -380,71 +560,63 @@ export default function Game() {
 
           {/* Main Content Area */}
           <div className="lg:col-span-2">
-            <Tabs defaultValue="world" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="character" className="flex items-center gap-1">
-                  <User className="w-4 h-4" />
-                  <span className="hidden sm:inline">Character</span>
-                </TabsTrigger>
-                <TabsTrigger value="world" className="flex items-center gap-1">
-                  <Map className="w-4 h-4" />
-                  <span className="hidden sm:inline">World</span>
-                </TabsTrigger>
-                <TabsTrigger value="dungeons" className="flex items-center gap-1">
-                  <Castle className="w-4 h-4" />
-                  <span className="hidden sm:inline">Dungeons</span>
-                </TabsTrigger>
-                <TabsTrigger value="inventory" className="flex items-center gap-1">
-                  <Backpack className="w-4 h-4" />
-                  <span className="hidden sm:inline">Inventory</span>
-                </TabsTrigger>
-                <TabsTrigger value="achievements" className="flex items-center gap-1">
-                  <Trophy className="w-4 h-4" />
-                  <span className="hidden sm:inline">Achievements</span>
-                </TabsTrigger>
-              </TabsList>
+            {/* Tab Navigation */}
+            <div className="flex border-b border-green-800 mb-4 overflow-x-auto">
+              <TabButton
+                active={activeTab === "character"}
+                onClick={() => setActiveTab("character")}
+                icon="☺"
+                label="Character"
+              />
+              <TabButton
+                active={activeTab === "world"}
+                onClick={() => setActiveTab("world")}
+                icon="⚐"
+                label="World"
+              />
+              <TabButton
+                active={activeTab === "dungeons"}
+                onClick={() => setActiveTab("dungeons")}
+                icon="⌂"
+                label="Dungeons"
+              />
+              <TabButton
+                active={activeTab === "inventory"}
+                onClick={() => setActiveTab("inventory")}
+                icon="◇"
+                label="Inventory"
+              />
+              <TabButton
+                active={activeTab === "quests"}
+                onClick={() => setActiveTab("quests")}
+                icon="!"
+                label="Quests"
+              />
+              <TabButton
+                active={activeTab === "talents"}
+                onClick={() => setActiveTab("talents")}
+                icon="★"
+                label="Talents"
+              />
+            </div>
 
-              <TabsContent value="character" className="mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Character Details</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">
-                      Detailed character stats, equipment, and talents will be displayed here.
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="world" className="mt-4">
-                <WorldMapTab />
-              </TabsContent>
-
-              <TabsContent value="dungeons" className="mt-4">
-                <DungeonsTab />
-              </TabsContent>
-
-              <TabsContent value="inventory" className="mt-4">
-                <InventoryTab />
-              </TabsContent>
-
-              <TabsContent value="achievements" className="mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Achievements</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-center py-8 text-muted-foreground">
-                    <Trophy className="w-12 h-12 mx-auto mb-4" />
-                    <p>No achievements unlocked yet.</p>
-                    <p className="text-sm mt-2">
-                      Complete activities to earn achievements!
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+            {/* Tab Content */}
+            <div>
+              {activeTab === "character" && <CharacterTab character={character} />}
+              {activeTab === "world" && <WorldMapTab navigate={navigate} characterId={characterId} />}
+              {activeTab === "dungeons" && <DungeonsTab navigate={navigate} characterId={characterId} />}
+              {activeTab === "inventory" && <InventoryTab navigate={navigate} characterId={characterId} />}
+              {activeTab === "quests" && <QuestsTab navigate={navigate} characterId={characterId} />}
+              {activeTab === "talents" && <TalentsTab navigate={navigate} characterId={characterId} level={character.level} />}
+            </div>
           </div>
+        </div>
+
+        {/* ASCII Footer */}
+        <div className="mt-8 text-center">
+          <pre className="text-green-800 text-xs leading-tight">
+            {"═".repeat(60)}
+          </pre>
         </div>
       </div>
 
@@ -458,7 +630,7 @@ export default function Game() {
           characterClass={character.characterClass}
           currentLevel={character.level}
           currentXp={character.experience}
-          xpToNextLevel={1000} // TODO: Get from game config based on level
+          xpToNextLevel={1000}
           progress={offlineProgress}
         />
       )}
