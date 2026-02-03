@@ -335,6 +335,147 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     res.json(zones);
   });
 
+  // ============= QUEST ROUTES =============
+
+  // Get available quests for character
+  app.get(api.quests.available.path, requireAuth, async (req, res) => {
+    const userId = getAuthUserId(req);
+    const characterId = getIntParam(req.params.characterId);
+
+    if (!await verifyCharacterOwnership(characterId, userId)) {
+      res.status(403).json({ message: 'Access denied' });
+      return;
+    }
+
+    const character = await storage.characters.getCharacterById(characterId);
+    if (!character) {
+      res.status(404).json({ message: 'Character not found' });
+      return;
+    }
+
+    // Get zones appropriate for character level (+/- 10 levels)
+    const zones = await storage.content.getZonesByLevelRange(
+      Math.max(1, character.level - 10),
+      character.level + 10
+    );
+
+    // Get all quests from these zones
+    const questsByZone = await Promise.all(
+      zones.map(zone => storage.content.getQuestsByZone(zone.id))
+    );
+    const allQuests = questsByZone.flat();
+
+    // Get character's quest progress to filter out active/completed
+    const questProgress = await storage.quests.getQuestProgress(characterId);
+    const activeQuestIds = new Set(
+      questProgress
+        .filter(p => p.isActive)
+        .map(p => p.questId)
+    );
+    const completedQuestIds = new Set(
+      questProgress
+        .filter(p => !p.isActive && p.completionCount > 0)
+        .map(p => p.questId)
+    );
+
+    // Filter to only show quests character hasn't started or completed
+    const availableQuests = allQuests.filter(
+      quest => !activeQuestIds.has(quest.id) && !completedQuestIds.has(quest.id)
+    );
+
+    res.json(availableQuests);
+  });
+
+  // Get active quests for character
+  app.get(api.quests.active.path, requireAuth, async (req, res) => {
+    const userId = getAuthUserId(req);
+    const characterId = getIntParam(req.params.characterId);
+
+    if (!await verifyCharacterOwnership(characterId, userId)) {
+      res.status(403).json({ message: 'Access denied' });
+      return;
+    }
+
+    const activeQuests = await storage.quests.getActiveQuests(characterId);
+    res.json(activeQuests);
+  });
+
+  // Accept a quest
+  app.post(api.quests.accept.path, requireAuth, async (req, res) => {
+    const userId = getAuthUserId(req);
+    const characterId = getIntParam(req.params.characterId);
+    const questId = getIntParam(req.params.questId);
+
+    if (!await verifyCharacterOwnership(characterId, userId)) {
+      res.status(403).json({ message: 'Access denied' });
+      return;
+    }
+
+    const character = await storage.characters.getCharacterById(characterId);
+    if (!character) {
+      res.status(404).json({ message: 'Character not found' });
+      return;
+    }
+
+    const quest = await storage.content.getQuestById(questId);
+    if (!quest) {
+      res.status(404).json({ message: 'Quest not found' });
+      return;
+    }
+
+    // Check if quest is already active or completed
+    const existingProgress = await storage.quests.getQuestProgress(characterId);
+    const existing = existingProgress.find(p => p.questId === questId);
+
+    if (existing && existing.isActive) {
+      res.status(400).json({ message: 'Quest already active' });
+      return;
+    }
+
+    // Check level requirement (quest level shouldn't be more than 5 levels above character)
+    if (quest.level > character.level + 5) {
+      res.status(400).json({ message: 'Character level too low for this quest' });
+      return;
+    }
+
+    // Create quest progress entry
+    const questProgress = await storage.quests.startQuest({
+      characterId,
+      questId,
+      progress: Array(quest.objectives.length).fill(0),
+      isActive: true,
+      startedAt: new Date(),
+      completionCount: 0,
+    });
+
+    res.json(questProgress);
+  });
+
+  // Abandon a quest
+  app.delete(api.quests.abandon.path, requireAuth, async (req, res) => {
+    const userId = getAuthUserId(req);
+    const characterId = getIntParam(req.params.characterId);
+    const questId = getIntParam(req.params.questId);
+
+    if (!await verifyCharacterOwnership(characterId, userId)) {
+      res.status(403).json({ message: 'Access denied' });
+      return;
+    }
+
+    // Find the quest progress entry
+    const questProgress = await storage.quests.getQuestProgress(characterId);
+    const progress = questProgress.find(p => p.questId === questId && p.isActive);
+
+    if (!progress) {
+      res.status(404).json({ message: 'Active quest not found' });
+      return;
+    }
+
+    // Abandon the quest
+    await storage.quests.abandonQuest(progress.id);
+    res.json({ success: true });
+  });
+
   // ============= DUNGEON ROUTES =============
 
   // List all dungeons
