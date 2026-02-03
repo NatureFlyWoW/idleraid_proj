@@ -3,6 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { api, buildUrl } from "@shared/routes";
 import { ArrowLeft, Lock, MapPin, Skull, Star } from "lucide-react";
+import { ZoneCardSkeleton } from "@/components/game/LoadingStates";
 
 // ============================================================================
 // ZONE SELECTION PAGE - List of available zones
@@ -303,8 +304,24 @@ export default function ZoneSelection() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex items-center justify-center">
-        <div className="text-amber-500 font-mono animate-pulse">Loading zones...</div>
+      <div className="min-h-screen bg-[#0a0908] p-4">
+        <div className="max-w-6xl mx-auto">
+          {/* Header skeleton */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="w-32 h-6 bg-stone-700/30 rounded animate-pulse"></div>
+            <div className="w-48 h-6 bg-stone-700/30 rounded animate-pulse"></div>
+          </div>
+
+          {/* Available zones skeleton */}
+          <div className="mb-8">
+            <div className="w-48 h-8 bg-stone-700/30 rounded mb-4 animate-pulse"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <ZoneCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

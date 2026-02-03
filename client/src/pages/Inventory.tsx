@@ -4,6 +4,7 @@ import { useParams, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { api, buildUrl } from "@shared/routes";
 import { ArrowLeft } from "lucide-react";
+import { InventoryGridSkeleton, ItemSlotSkeleton } from "@/components/game/LoadingStates";
 
 // ============================================================================
 // INVENTORY PAGE - Grid of items with tooltips
@@ -463,8 +464,32 @@ export default function Inventory() {
 
   if (charLoading || inventoryLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex items-center justify-center">
-        <div className="text-amber-500 font-mono animate-pulse">Loading inventory...</div>
+      <div className="min-h-screen bg-[#0a0908] p-4">
+        <div className="max-w-7xl mx-auto">
+          {/* Header skeleton */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="w-32 h-6 bg-stone-700/30 rounded animate-pulse"></div>
+            <div className="w-48 h-6 bg-stone-700/30 rounded animate-pulse"></div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Equipment slots skeleton */}
+            <div className="lg:col-span-1">
+              <div className="w-32 h-6 bg-stone-700/30 rounded mb-4 animate-pulse"></div>
+              <div className="grid grid-cols-2 gap-2">
+                {[...Array(15)].map((_, i) => (
+                  <ItemSlotSkeleton key={i} size="medium" />
+                ))}
+              </div>
+            </div>
+
+            {/* Bag inventory skeleton */}
+            <div className="lg:col-span-2">
+              <div className="w-32 h-6 bg-stone-700/30 rounded mb-4 animate-pulse"></div>
+              <InventoryGridSkeleton slots={20} />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
