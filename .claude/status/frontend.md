@@ -7,6 +7,25 @@
 
 ## Latest Update
 
+## [2026-02-03 16:45]
+- Completed:
+  - **DungeonSelection API Wiring:**
+    - Added useQuery to fetch dungeons from `/api/dungeons`
+    - Maps API response to component format
+    - Falls back to sample DUNGEONS if API returns empty
+    - Maintains all existing UI/UX
+- Changed:
+  - `client/src/pages/DungeonSelection.tsx` (MODIFIED - API integration)
+- Needs from Coordinator: None
+- Needs from other agents:
+  - Backend: Quest API endpoints not yet implemented - blocks QuestLog wiring
+    - Need: `/api/characters/:id/quests/available`
+    - Need: `/api/characters/:id/quests/active`
+    - Need: `/api/characters/:id/quests/:questId/accept`
+    - Need: `/api/characters/:id/quests/:questId` (DELETE abandon)
+- Blocked on: QuestLog API wiring blocked until Backend implements quest endpoints
+- Next: Add error boundaries, loading states
+
 ## [2026-02-02 17:00]
 - Completed:
   - **P0: Talent UI System** (Complete)
