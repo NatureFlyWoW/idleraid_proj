@@ -1,32 +1,109 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ClassCard } from "@/components/game/ClassCard";
 import { useToast } from "@/hooks/use-toast";
-import { api, buildUrl } from "@shared/routes";
+import { api } from "@shared/routes";
+import { cn } from "@/lib/utils";
+import { ASCIIHeader, TerminalPanel, TerminalButton } from "@/components/game/TerminalPanel";
 
 // All classes that will eventually be available
 const ALL_CLASSES = [
-  { id: "warrior", name: "Warrior", description: "Melee powerhouse that uses rage generated from combat.", resourceType: "rage", armorType: "plate", implemented: true },
-  { id: "paladin", name: "Paladin", description: "Holy knight combining melee prowess with divine magic.", resourceType: "mana", armorType: "plate", implemented: false },
-  { id: "hunter", name: "Hunter", description: "Ranged damage dealer with animal companions.", resourceType: "mana", armorType: "mail", implemented: false },
-  { id: "rogue", name: "Rogue", description: "Stealthy assassin using energy for quick strikes.", resourceType: "energy", armorType: "leather", implemented: false },
-  { id: "priest", name: "Priest", description: "Devoted healer who can also harness shadow magic.", resourceType: "mana", armorType: "cloth", implemented: true },
-  { id: "mage", name: "Mage", description: "Master of arcane, fire, and frost magic.", resourceType: "mana", armorType: "cloth", implemented: true },
-  { id: "druid", name: "Druid", description: "Shapeshifter who can fill any role.", resourceType: "mana", armorType: "leather", implemented: false },
+  { id: "warrior", name: "Warrior", description: "Melee powerhouse using rage from combat", resourceType: "rage", armorType: "plate", implemented: true },
+  { id: "paladin", name: "Paladin", description: "Holy knight combining melee and divine magic", resourceType: "mana", armorType: "plate", implemented: false },
+  { id: "hunter", name: "Hunter", description: "Ranged damage dealer with animal companions", resourceType: "mana", armorType: "mail", implemented: false },
+  { id: "rogue", name: "Rogue", description: "Stealthy assassin using energy for strikes", resourceType: "energy", armorType: "leather", implemented: false },
+  { id: "priest", name: "Priest", description: "Devoted healer who can harness shadow magic", resourceType: "mana", armorType: "cloth", implemented: true },
+  { id: "mage", name: "Mage", description: "Master of arcane, fire, and frost magic", resourceType: "mana", armorType: "cloth", implemented: true },
+  { id: "druid", name: "Druid", description: "Shapeshifter who can fill any role", resourceType: "mana", armorType: "leather", implemented: false },
 ];
+
+// Class colors matching WoW palette
+const classColors: Record<string, string> = {
+  warrior: "#C79C6E",
+  paladin: "#F58CBA",
+  hunter: "#ABD473",
+  rogue: "#FFF569",
+  priest: "#FFFFFF",
+  mage: "#69CCF0",
+  druid: "#FF7D0A",
+};
+
+interface ClassCardProps {
+  classInfo: any;
+  selected: boolean;
+  onClick: () => void;
+  disabled: boolean;
+}
+
+function ClassCard({ classInfo, selected, onClick, disabled }: ClassCardProps) {
+  const color = classColors[classInfo.id];
+
+  return (
+    <div
+      onClick={onClick}
+      className={cn(
+        "relative border-2 p-4 cursor-pointer transition-all font-mono",
+        selected && !disabled && "border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.5)]",
+        !selected && !disabled && "border-green-700 hover:border-green-500",
+        disabled && "border-stone-800 opacity-40 cursor-not-allowed"
+      )}
+      style={{
+        backgroundColor: disabled ? "#0a0a0a" : selected ? "rgba(0, 0, 0, 0.8)" : "#000",
+      }}
+    >
+      {/* Class icon placeholder (can be replaced with pixel art later) */}
+      <div className="text-center mb-3">
+        <pre className="text-4xl" style={{ color: disabled ? "#444" : color }}>
+          {classInfo.id === "warrior" && "⚔"}
+          {classInfo.id === "paladin" && "✚"}
+          {classInfo.id === "hunter" && "⚑"}
+          {classInfo.id === "rogue" && "†"}
+          {classInfo.id === "priest" && "✞"}
+          {classInfo.id === "mage" && "★"}
+          {classInfo.id === "druid" && "❀"}
+        </pre>
+      </div>
+
+      {/* Class Name */}
+      <h3
+        className="text-lg font-bold uppercase tracking-wider text-center mb-2"
+        style={{ color: disabled ? "#666" : color }}
+      >
+        {classInfo.name}
+      </h3>
+
+      {/* Resource & Armor */}
+      <div className="text-xs text-center space-y-1 mb-3">
+        <div className={cn("uppercase", disabled ? "text-stone-600" : "text-green-500")}>
+          {classInfo.resourceType}
+        </div>
+        <div className={cn("uppercase", disabled ? "text-stone-700" : "text-green-600")}>
+          {classInfo.armorType} armor
+        </div>
+      </div>
+
+      {/* Description */}
+      <p className={cn("text-xs text-center leading-relaxed", disabled ? "text-stone-700" : "text-green-400")}>
+        {classInfo.description}
+      </p>
+
+      {/* Status */}
+      {disabled && (
+        <div className="absolute top-2 right-2">
+          <span className="text-xs text-stone-600 border border-stone-800 px-2 py-1 uppercase">
+            Soon
+          </span>
+        </div>
+      )}
+
+      {selected && !disabled && (
+        <div className="absolute -top-2 -right-2">
+          <span className="text-yellow-400 text-2xl animate-pulse">✓</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function CharacterCreate() {
   const [, navigate] = useLocation();
@@ -114,42 +191,65 @@ export default function CharacterCreate() {
   const selectedClassInfo = classes.find(c => c.id === selectedClass);
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-3xl">Create New Character</CardTitle>
-          <CardDescription>
-            Choose your class and begin your adventure in Idle Raiders
-          </CardDescription>
-        </CardHeader>
+    <div className="min-h-screen bg-black p-4">
+      <div className="max-w-6xl mx-auto">
+        {/* ASCII Header */}
+        <ASCIIHeader variant="double">Create New Character</ASCIIHeader>
+
+        <p className="text-center text-green-500 mb-8 font-mono text-sm uppercase tracking-wide">
+          &gt;&gt; Choose your class and begin your adventure in Idle Raiders &lt;&lt;
+        </p>
 
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-6">
+          <div className="space-y-8">
+            {/* Error Display */}
             {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+              <TerminalPanel variant="red">
+                <div className="text-center">
+                  <pre className="text-red-500 text-sm">
+                    ╔════════════════════════════════╗{"\n"}
+                    ║          ERROR                ║{"\n"}
+                    ╚════════════════════════════════╝
+                  </pre>
+                  <p className="text-red-400 mt-2">{error}</p>
+                </div>
+              </TerminalPanel>
             )}
 
-            {/* Character Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-lg">Character Name</Label>
-              <Input
-                id="name"
-                placeholder="Enter a name for your character..."
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                maxLength={24}
-                className="max-w-md text-lg"
-              />
-              <p className="text-sm text-muted-foreground">
-                {name.length}/24 characters
-              </p>
-            </div>
+            {/* Character Name Input */}
+            <TerminalPanel variant="green">
+              <div className="space-y-3">
+                <label className="text-green-400 uppercase tracking-wider text-sm font-bold">
+                  Character Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter a name for your character..."
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={24}
+                  className="w-full bg-black border-2 border-green-700 text-green-400 px-3 py-2 font-mono focus:border-green-500 focus:ring-2 focus:ring-green-500/50 focus:outline-none"
+                />
+                <div className="text-xs text-green-600">
+                  {name.length}/24 characters
+                </div>
+              </div>
+            </TerminalPanel>
 
             {/* Class Selection */}
             <div className="space-y-4">
-              <Label className="text-lg">Select Class</Label>
+              <div className="text-center">
+                <pre className="text-green-600 text-xs leading-tight mb-2">
+                  {"═".repeat(40)}
+                </pre>
+                <h2 className="text-yellow-400 uppercase tracking-wider text-lg font-bold">
+                  Select Class
+                </h2>
+                <pre className="text-green-600 text-xs leading-tight mt-2">
+                  {"═".repeat(40)}
+                </pre>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {classes.map((classInfo) => (
                   <ClassCard
@@ -165,48 +265,63 @@ export default function CharacterCreate() {
 
             {/* Selected Class Preview */}
             {selectedClassInfo && (
-              <Card className="bg-muted/50">
-                <CardHeader>
-                  <CardTitle className="text-xl">
+              <TerminalPanel variant="yellow">
+                <div className="text-center">
+                  <h3
+                    className="text-xl font-bold uppercase tracking-wider mb-3"
+                    style={{ color: classColors[selectedClassInfo.id] }}
+                  >
                     {selectedClassInfo.name} Preview
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-muted-foreground">
-                    {selectedClassInfo.description}
-                  </p>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">Resource:</span>{" "}
-                      <span className="capitalize">{selectedClassInfo.resourceType}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Armor:</span>{" "}
-                      <span className="capitalize">{selectedClassInfo.armorType}</span>
+                  </h3>
+
+                  <div className="space-y-3 text-left">
+                    <p className="text-green-400 text-sm">
+                      {selectedClassInfo.description}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-3 text-sm border-t border-yellow-800 pt-3">
+                      <div>
+                        <span className="text-yellow-600 uppercase text-xs">Resource:</span>{" "}
+                        <span className="text-yellow-400 capitalize">{selectedClassInfo.resourceType}</span>
+                      </div>
+                      <div>
+                        <span className="text-yellow-600 uppercase text-xs">Armor:</span>{" "}
+                        <span className="text-yellow-400 capitalize">{selectedClassInfo.armorType}</span>
+                      </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </TerminalPanel>
             )}
-          </CardContent>
 
-          <CardFooter className="flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate("/")}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={!name.trim() || !selectedClass || createCharacterMutation.isPending}
-            >
-              {createCharacterMutation.isPending ? "Creating..." : "Create Character"}
-            </Button>
-          </CardFooter>
+            {/* Action Buttons */}
+            <div className="flex justify-between gap-4 pt-4">
+              <TerminalButton
+                onClick={() => navigate("/")}
+                variant="secondary"
+                className="flex-1"
+              >
+                [←] Cancel
+              </TerminalButton>
+              <TerminalButton
+                onClick={handleSubmit}
+                variant="primary"
+                disabled={!name.trim() || !selectedClass || createCharacterMutation.isPending}
+                className="flex-1"
+              >
+                {createCharacterMutation.isPending ? "[...] Creating..." : "[✓] Create Character"}
+              </TerminalButton>
+            </div>
+          </div>
         </form>
-      </Card>
+
+        {/* ASCII Footer */}
+        <div className="mt-8 text-center">
+          <pre className="text-green-800 text-xs leading-tight">
+            {"═".repeat(60)}
+          </pre>
+        </div>
+      </div>
     </div>
   );
 }

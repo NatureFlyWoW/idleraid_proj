@@ -1,17 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,20 +11,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { PlusCircle, Trash2, Play, Swords } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api, buildUrl } from "@shared/routes";
 import { cn } from "@/lib/utils";
+import { ASCIIHeader, TerminalPanel, TerminalButton } from "@/components/game/TerminalPanel";
 
-// Class colors
+// Class colors matching WoW palette
 const classColors: Record<string, string> = {
-  warrior: "text-amber-600",
-  paladin: "text-pink-400",
-  hunter: "text-green-500",
-  rogue: "text-yellow-500",
-  priest: "text-gray-400",
-  mage: "text-cyan-400",
-  druid: "text-orange-500",
+  warrior: "text-[#C79C6E]",
+  paladin: "text-[#F58CBA]",
+  hunter: "text-[#ABD473]",
+  rogue: "text-[#FFF569]",
+  priest: "text-[#FFFFFF]",
+  mage: "text-[#69CCF0]",
+  druid: "text-[#FF7D0A]",
 };
 
 interface Character {
@@ -60,112 +48,117 @@ function CharacterCard({
   onPlay: () => void;
   onDelete: () => void;
 }) {
-  // Calculate XP percentage (simplified - would use actual XP formula)
   const xpPercent = (character.experience % 1000) / 10;
+  const healthPercent = (character.currentHealth / character.maxHealth) * 100;
+
+  // Generate ASCII health bar
+  const barLength = 20;
+  const filledBars = Math.floor((healthPercent / 100) * barLength);
+  const healthBar = "█".repeat(filledBars) + "░".repeat(barLength - filledBars);
+
+  const xpBars = Math.floor((xpPercent / 100) * barLength);
+  const xpBar = "█".repeat(xpBars) + "░".repeat(barLength - xpBars);
 
   return (
-    <Card className="transition-all hover:shadow-lg">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className={cn("text-xl", classColors[character.characterClass])}>
+    <TerminalPanel variant="green" className="hover:border-green-500 transition-all">
+      <div className="space-y-3">
+        {/* Character Name & Level */}
+        <div className="flex items-center justify-between border-b border-green-800 pb-2">
+          <h3 className={cn("text-lg font-bold uppercase tracking-wider", classColors[character.characterClass])}>
             {character.name}
-          </CardTitle>
-          <Badge variant="outline">Level {character.level}</Badge>
+          </h3>
+          <span className="text-yellow-400 text-sm font-bold px-2 py-1 border border-yellow-600">
+            LVL {character.level}
+          </span>
         </div>
-        <CardDescription className="capitalize">
-          {character.characterClass}
-        </CardDescription>
-      </CardHeader>
 
-      <CardContent className="space-y-4">
+        {/* Class */}
+        <div className="text-xs text-green-500 uppercase tracking-wider">
+          {character.characterClass}
+        </div>
+
         {/* Health Bar */}
         <div className="space-y-1">
-          <div className="flex justify-between text-sm">
-            <span className="text-red-500">Health</span>
-            <span>{character.currentHealth} / {character.maxHealth}</span>
+          <div className="flex justify-between text-xs">
+            <span className="text-red-400">HP</span>
+            <span className="text-green-300">
+              {character.currentHealth}/{character.maxHealth}
+            </span>
           </div>
-          <Progress
-            value={(character.currentHealth / character.maxHealth) * 100}
-            className="h-2"
-          />
+          <pre className="text-red-500 text-xs leading-none">{healthBar}</pre>
         </div>
 
         {/* XP Bar */}
         <div className="space-y-1">
-          <div className="flex justify-between text-sm">
-            <span className="text-purple-500">Experience</span>
-            <span>{Math.floor(xpPercent)}%</span>
+          <div className="flex justify-between text-xs">
+            <span className="text-purple-400">XP</span>
+            <span className="text-green-300">{Math.floor(xpPercent)}%</span>
           </div>
-          <Progress value={xpPercent} className="h-2 bg-purple-100" />
+          <pre className="text-purple-500 text-xs leading-none">{xpBar}</pre>
         </div>
 
         {/* Gold */}
-        <div className="flex justify-between text-sm">
-          <span className="text-yellow-600">Gold</span>
-          <span className="font-medium">{character.gold.toLocaleString()}</span>
+        <div className="flex justify-between text-xs border-t border-green-800 pt-2">
+          <span className="text-yellow-600">GOLD</span>
+          <span className="text-yellow-400 font-bold">{character.gold.toLocaleString()}</span>
         </div>
 
         {/* Activity Status */}
         {character.currentActivity && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Swords className="w-4 h-4 animate-pulse" />
-            <span className="capitalize">Currently {character.currentActivity}...</span>
+          <div className="text-xs text-cyan-400 border border-cyan-700 p-2 bg-cyan-950/20">
+            <span className="animate-pulse">▶</span> {character.currentActivity.toUpperCase()}
           </div>
         )}
-      </CardContent>
 
-      <CardFooter className="flex justify-between gap-2">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="text-destructive">
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete {character.name}?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your
-                character and all associated progress.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={onDelete}
-                className="bg-destructive text-destructive-foreground"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {/* Actions */}
+        <div className="flex gap-2 pt-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <TerminalButton variant="danger" className="flex-1 text-xs py-1">
+                [X] DEL
+              </TerminalButton>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-black border-2 border-red-600 font-mono">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-red-400 uppercase">
+                  Delete {character.name}?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-green-400 font-mono">
+                  This action cannot be undone. This will permanently delete your character and all associated progress.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="terminal-button">Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={onDelete}
+                  className="bg-transparent border-2 border-red-600 text-red-400 hover:bg-red-600/20"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
-        <Button onClick={onPlay} className="flex-1">
-          <Play className="w-4 h-4 mr-2" />
-          Play
-        </Button>
-      </CardFooter>
-    </Card>
+          <TerminalButton onClick={onPlay} className="flex-1 text-xs py-1">
+            [▶] PLAY
+          </TerminalButton>
+        </div>
+      </div>
+    </TerminalPanel>
   );
 }
 
 function LoadingSkeleton() {
   return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-6 w-32" />
-        <Skeleton className="h-4 w-20 mt-2" />
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Skeleton className="h-2 w-full" />
-        <Skeleton className="h-2 w-full" />
-        <Skeleton className="h-4 w-24" />
-      </CardContent>
-      <CardFooter>
-        <Skeleton className="h-10 w-full" />
-      </CardFooter>
-    </Card>
+    <TerminalPanel variant="green">
+      <div className="space-y-3 animate-pulse">
+        <div className="h-6 bg-green-900/30 w-3/4"></div>
+        <div className="h-4 bg-green-900/30 w-1/2"></div>
+        <div className="h-3 bg-green-900/30 w-full"></div>
+        <div className="h-3 bg-green-900/30 w-full"></div>
+        <div className="h-8 bg-green-900/30 w-full"></div>
+      </div>
+    </TerminalPanel>
   );
 }
 
@@ -201,7 +194,6 @@ export default function CharacterSelect() {
   });
 
   const handlePlay = (characterId: number) => {
-    // Navigate to game with selected character
     navigate(`/game/${characterId}`);
   };
 
@@ -209,15 +201,14 @@ export default function CharacterSelect() {
   const canCreateMore = (characters?.length ?? 0) < maxCharacters;
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">Idle Raiders</h1>
-          <p className="text-muted-foreground text-lg">
-            Select a character or create a new one to begin your adventure
-          </p>
-        </div>
+    <div className="min-h-screen bg-black p-4">
+      <div className="max-w-6xl mx-auto">
+        {/* ASCII Header */}
+        <ASCIIHeader variant="double">Idle Raiders</ASCIIHeader>
+
+        <p className="text-center text-green-500 mb-8 font-mono text-sm uppercase tracking-wide">
+          &gt;&gt; Select a character or create a new one to begin your adventure &lt;&lt;
+        </p>
 
         {/* Character Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -240,35 +231,52 @@ export default function CharacterSelect() {
 
           {/* Create New Character Card */}
           {canCreateMore && (
-            <Card
-              className="cursor-pointer transition-all hover:shadow-lg hover:scale-105 border-dashed"
+            <TerminalPanel
+              variant="yellow"
+              className="cursor-pointer hover:border-yellow-500 transition-all hover:shadow-[0_0_15px_rgba(202,138,4,0.3)]"
               onClick={() => navigate("/create")}
             >
-              <CardContent className="flex flex-col items-center justify-center h-full min-h-[280px] text-muted-foreground">
-                <PlusCircle className="w-12 h-12 mb-4" />
-                <p className="text-lg font-medium">Create New Character</p>
-                <p className="text-sm">
+              <div className="flex flex-col items-center justify-center h-full min-h-[280px] text-yellow-400">
+                <pre className="text-5xl mb-4">╋</pre>
+                <p className="text-lg font-bold uppercase tracking-wider mb-2">
+                  Create New Character
+                </p>
+                <p className="text-xs text-yellow-600">
                   {characters?.length ?? 0}/{maxCharacters} slots used
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+            </TerminalPanel>
           )}
         </div>
 
         {/* Empty State */}
         {!isLoading && (!characters || characters.length === 0) && (
           <div className="text-center py-12">
-            <Swords className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <h2 className="text-2xl font-semibold mb-2">No Characters Yet</h2>
-            <p className="text-muted-foreground mb-6">
-              Create your first character to start your journey!
-            </p>
-            <Button size="lg" onClick={() => navigate("/create")}>
-              <PlusCircle className="w-5 h-5 mr-2" />
-              Create Character
-            </Button>
+            <TerminalPanel variant="cyan" className="max-w-md mx-auto">
+              <pre className="text-6xl text-cyan-400 mb-4">⚔</pre>
+              <h2 className="text-2xl font-bold mb-2 text-cyan-400 uppercase">
+                No Characters Yet
+              </h2>
+              <p className="text-green-400 mb-6 text-sm">
+                Create your first character to start your journey!
+              </p>
+              <TerminalButton
+                onClick={() => navigate("/create")}
+                variant="primary"
+                className="w-full"
+              >
+                [+] Create Character
+              </TerminalButton>
+            </TerminalPanel>
           </div>
         )}
+
+        {/* ASCII Footer */}
+        <div className="mt-8 text-center">
+          <pre className="text-green-800 text-xs leading-tight">
+            {"═".repeat(60)}
+          </pre>
+        </div>
       </div>
     </div>
   );

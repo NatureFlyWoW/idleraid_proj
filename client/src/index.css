@@ -5,70 +5,81 @@
 @tailwind utilities;
 
 :root {
-  /* Minimalist Palette: Black, White, Grays with a subtle Indigo accent */
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
+  /* Terminal/Retro Game Palette: Black bg, Green/Yellow/Cyan terminal text */
+  /* Pure black background like Melvor Idle */
+  --background: 0 0% 3%;
+  --foreground: 120 100% 85%; /* Terminal green */
 
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
+  /* Cards with slight transparency for depth */
+  --card: 0 0% 6%;
+  --card-foreground: 120 100% 85%;
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
+  --popover: 0 0% 6%;
+  --popover-foreground: 120 100% 85%;
 
-  --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%;
+  /* Primary = Terminal green accent */
+  --primary: 120 100% 70%;
+  --primary-foreground: 0 0% 3%;
 
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
+  /* Secondary = Darker green */
+  --secondary: 120 40% 20%;
+  --secondary-foreground: 120 100% 85%;
 
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
+  /* Muted = Dim green */
+  --muted: 120 20% 15%;
+  --muted-foreground: 120 40% 60%;
 
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
+  /* Accent = Yellow (for highlights/gold) */
+  --accent: 45 100% 60%;
+  --accent-foreground: 0 0% 3%;
 
-  --destructive: 0 84.2% 60.2%;
+  /* Destructive = Red (for health/danger) */
+  --destructive: 0 100% 60%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 240 5.9% 10%;
+  /* Borders = Dim green */
+  --border: 120 40% 25%;
+  --input: 120 20% 15%;
+  --ring: 120 100% 70%;
 
-  --radius: 0.5rem;
+  /* Remove border radius for terminal aesthetic */
+  --radius: 0rem;
 
-  --font-sans: 'Inter', sans-serif;
-  --font-display: 'Space Grotesk', sans-serif;
+  /* Force monospace everywhere */
+  --font-sans: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  --font-display: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 }
 
 .dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
+  /* Same as root - terminal theme is always dark */
+  --background: 0 0% 3%;
+  --foreground: 120 100% 85%;
 
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
+  --card: 0 0% 6%;
+  --card-foreground: 120 100% 85%;
 
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
+  --popover: 0 0% 6%;
+  --popover-foreground: 120 100% 85%;
 
-  --primary: 0 0% 98%;
-  --primary-foreground: 240 5.9% 10%;
+  --primary: 120 100% 70%;
+  --primary-foreground: 0 0% 3%;
 
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
+  --secondary: 120 40% 20%;
+  --secondary-foreground: 120 100% 85%;
 
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
+  --muted: 120 20% 15%;
+  --muted-foreground: 120 40% 60%;
 
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
+  --accent: 45 100% 60%;
+  --accent-foreground: 0 0% 3%;
 
-  --destructive: 0 62.8% 30.6%;
+  --destructive: 0 100% 60%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
+  --border: 120 40% 25%;
+  --input: 120 20% 15%;
+  --ring: 120 100% 70%;
 }
 
 @layer base {
@@ -76,12 +87,22 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
-    font-family: var(--font-sans);
+    @apply bg-background text-foreground;
+    font-family: var(--font-mono);
+    /* Terminal aesthetic - no antialiasing for crisp pixels */
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
-    @apply tracking-tight;
+    font-family: var(--font-mono);
+    @apply tracking-normal font-bold;
+    letter-spacing: 0.05em; /* Wider spacing for terminal readability */
+    text-transform: uppercase; /* Terminal aesthetic */
+  }
+
+  /* Force all buttons, inputs, and interactive elements to use monospace */
+  button, input, textarea, select {
+    font-family: var(--font-mono);
   }
 }
 
@@ -105,6 +126,59 @@
 .ascii-frame-double {
   border: 2px solid currentColor;
   box-shadow: inset 0 0 0 1px currentColor;
+}
+
+/* Terminal-style panels */
+.terminal-panel {
+  @apply bg-black border-2 border-green-600 p-4 font-mono text-green-400;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.terminal-panel-alt {
+  @apply bg-stone-950 border-2 border-yellow-600 p-4 font-mono text-yellow-400;
+  box-shadow: 0 0 10px rgba(202, 138, 4, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Terminal color scheme */
+.text-terminal-green { color: #22c55e; }
+.text-terminal-yellow { color: #fbbf24; }
+.text-terminal-cyan { color: #06b6d4; }
+.text-terminal-red { color: #ef4444; }
+.text-terminal-blue { color: #3b82f6; }
+.text-terminal-purple { color: #a855f7; }
+
+/* ASCII borders using box-drawing characters */
+.ascii-border-simple {
+  position: relative;
+  padding: 1rem;
+}
+
+.ascii-border-simple::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid currentColor;
+  pointer-events: none;
+}
+
+/* Terminal button style */
+.terminal-button {
+  @apply bg-transparent border-2 border-green-600 text-green-400 px-4 py-2 font-mono uppercase tracking-wider;
+  @apply hover:bg-green-600/20 hover:border-green-500 hover:text-green-300;
+  @apply active:bg-green-600/30;
+  transition: all 0.1s ease;
+  box-shadow: 0 0 5px rgba(34, 197, 94, 0.3);
+}
+
+.terminal-button:hover {
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+}
+
+/* Terminal input style */
+.terminal-input {
+  @apply bg-black border-2 border-green-700 text-green-400 px-3 py-2 font-mono;
+  @apply focus:border-green-500 focus:ring-2 focus:ring-green-500/50;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
 }
 
 /* Item Rarity Glows */
