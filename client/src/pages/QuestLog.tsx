@@ -569,6 +569,7 @@ export default function QuestLog() {
   const [, navigate] = useLocation();
   const characterId = parseInt(params.id || "0");
   const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: character, isLoading: characterLoading } = useQuery({
     queryKey: ["character", characterId],
@@ -582,8 +583,56 @@ export default function QuestLog() {
     enabled: characterId > 0,
   });
 
-  // For now, use sample quests. In production, this would fetch from API
-  const quests = SAMPLE_QUESTS;
+  // Fetch active quests from API
+  const { data: apiQuestProgress, isLoading: questsLoading } = useQuery({
+    queryKey: ["activeQuests", characterId],
+    queryFn: async () => {
+      const response = await fetch(
+        buildUrl(api.quests.active.path, { characterId })
+      );
+      if (!response.ok) throw new Error("Failed to fetch active quests");
+      return response.json();
+    },
+    enabled: characterId > 0,
+  });
+
+  // Map API quest progress to local Quest interface
+  // Note: API returns CharacterQuestProgress[], we map to Quest[] with sample data as fallback
+  const quests =
+    apiQuestProgress && apiQuestProgress.length > 0
+      ? apiQuestProgress.map((progress: any) => {
+          // Find matching sample quest or create a basic one
+          const sampleQuest = SAMPLE_QUESTS.find(
+            (q) => q.id === String(progress.questId)
+          );
+          if (sampleQuest) {
+            // Update objectives progress from API
+            return {
+              ...sampleQuest,
+              objectives: sampleQuest.objectives.map((obj, idx) => ({
+                ...obj,
+                current: progress.progress?.[idx] ?? 0,
+                completed: progress.progress?.[idx] >= obj.required,
+              })),
+            };
+          }
+          // Fallback: create minimal quest object
+          return {
+            id: String(progress.questId),
+            name: `Quest ${progress.questId}`,
+            description: "Quest details loading...",
+            zone: "Unknown",
+            level: 1,
+            difficulty: "normal" as const,
+            objectives: [],
+            rewards: [],
+            isMainQuest: false,
+            giver: "Quest Giver",
+            turnInNpc: "Quest Giver",
+          };
+        })
+      : SAMPLE_QUESTS; // Fallback to sample data
+
   const selectedQuest = quests.find((q) => q.id === selectedQuestId);
 
   // Auto-select first quest if none selected
@@ -591,12 +640,40 @@ export default function QuestLog() {
     setSelectedQuestId(quests[0].id);
   }
 
+  // Abandon quest mutation
+  const abandonMutation = useMutation({
+    mutationFn: async (questId: string) => {
+      const response = await fetch(
+        buildUrl(api.quests.abandon.path, {
+          characterId,
+          questId: parseInt(questId),
+        }),
+        {
+          method: "DELETE",
+        }
+      );
+      if (!response.ok) throw new Error("Failed to abandon quest");
+      return response.json();
+    },
+    onSuccess: () => {
+      // Refresh active quests after abandoning
+      queryClient.invalidateQueries({ queryKey: ["activeQuests", characterId] });
+      // Clear selection if the abandoned quest was selected
+      if (quests.length > 1) {
+        setSelectedQuestId(quests[0].id === selectedQuestId ? quests[1].id : quests[0].id);
+      } else {
+        setSelectedQuestId(null);
+      }
+    },
+  });
+
   const handleAbandon = (questId: string) => {
-    // Would call API to abandon quest
-    console.log(`Abandoning quest: ${questId}`);
+    if (window.confirm("Are you sure you want to abandon this quest?")) {
+      abandonMutation.mutate(questId);
+    }
   };
 
-  if (characterLoading) {
+  if (characterLoading || questsLoading) {
     return (
       <div className="min-h-screen bg-[#0a0908] flex items-center justify-center">
         <div className="text-amber-500 font-mono animate-pulse">
