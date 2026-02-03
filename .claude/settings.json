@@ -1,0 +1,59 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|Create",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "BRANCH=$(git branch --show-current 2>/dev/null); if [ \"$BRANCH\" = \"main\" ]; then echo '{\"decision\": \"block\", \"reason\": \"Cannot edit files on main branch. Create a feature branch first: git checkout -b feature/your-feature-name\"}' && exit 2; fi",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "INPUT=$(cat); FILE=$(echo \"$INPUT\" | jq -r '.tool_input.file_path // empty' 2>/dev/null); if echo \"$FILE\" | grep -q 'server/game/'; then echo '{\"feedback\": \"Editing game system file. Verify your implementation matches the Idle-Raiders-GDD.md specifications.\"}'; fi",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|Create",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "INPUT=$(cat); FILE=$(echo \"$INPUT\" | jq -r '.tool_input.file_path // empty' 2>/dev/null); if echo \"$FILE\" | grep -q '^shared/'; then echo '{\"feedback\": \"SHARED FILE MODIFIED: '\"$FILE\"' — Update .claude/status/ and notify the Coordinator agent.\"}'; fi",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "INPUT=$(cat); FILE=$(echo \"$INPUT\" | jq -r '.tool_input.file_path // empty' 2>/dev/null); if echo \"$FILE\" | grep -q 'gameConfig'; then cd \"$CLAUDE_PROJECT_DIR\" && npx tsc --noEmit --pretty 2>&1 | head -20; fi",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CHANGED=$(cd \"$CLAUDE_PROJECT_DIR\" && git diff --name-only 2>/dev/null | wc -l | tr -d ' '); if [ \"$CHANGED\" -gt 3 ]; then echo '{\"feedback\": \"You modified '\"$CHANGED\"' files this session. Remember to update your .claude/status/ file.\"}'; fi",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
