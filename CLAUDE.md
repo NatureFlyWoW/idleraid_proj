@@ -113,6 +113,125 @@ Creates procedural ASCII-hybrid item sprites. Owns `client/src/components/game/i
 
 The GDD is the **authoritative source** for game design decisions. When implementing features, follow the GDD specifications. If you find conflicts between code and GDD, flag them to the Coordinator.
 
+## Single-Session Multi-Agent Workflow
+
+This project uses a **single Claude session** with agent role-switching via git branches. This approach eliminates agent timeouts and coordination overhead while maintaining clear organization.
+
+### How It Works
+
+1. **One Claude session runs at a time** (no concurrent multi-terminal agents)
+2. **Git branches represent agent workspaces** (agent/backend, agent/frontend, agent/coordinator, etc.)
+3. **Status files track progress** (`.claude/status/*.md`)
+4. **Clear handoff protocol** between agents via status file updates
+5. **Parallel exploration** during planning, **sequential implementation** during coding
+
+### Starting a Session
+
+1. **Check status files** to see what each agent last did:
+   ```bash
+   cat .claude/status/*.md
+   ```
+
+2. **Determine your agent role** for this session
+
+3. **Switch to agent branch**:
+   ```bash
+   git checkout agent/[role]
+   ```
+
+4. **Rebase on main** if needed to get latest shared/ changes:
+   ```bash
+   git rebase main
+   ```
+
+5. **Tell Claude your role and task**:
+   ```
+   "I'm the [Agent Name]. Here's what I'm working on: [task description]"
+   ```
+
+### During a Session
+
+**Agent implements work in their owned directories:**
+- Update code following ownership boundaries
+- Run tests to verify changes
+- Commit with clear message: `[AgentName] Description of change`
+
+**If shared/ changes are needed:**
+- Document the requirement in your status file under "Needs from Coordinator"
+- User will switch to Coordinator role
+- Coordinator updates shared/ and merges to main
+- Original agent rebases and continues
+
+### Ending a Session
+
+1. **Commit your changes** with `[AgentName]` prefix:
+   ```bash
+   git add [files]
+   git commit -m "[Backend] Add guild system endpoints"
+   ```
+
+2. **Update your status file** (`.claude/status/[agent].md`) with:
+   - What you completed
+   - What files changed
+   - What other agents need (handoff requirements)
+   - What's blocking you (if anything)
+   - What you'll work on next
+
+3. **Document handoffs** clearly in status file for next agent
+
+### Switching Agent Roles
+
+1. **Review previous agent's status file** to understand context
+2. **Switch branches**: `git checkout agent/[newrole]`
+3. **Rebase if needed**: `git rebase main`
+4. **Continue work** based on status file handoff instructions
+
+### Helper Script (Optional)
+
+Use `script/agent-switch.sh` for quick agent switching:
+
+```bash
+./script/agent-switch.sh backend
+# Automatically checks out branch, rebases, and shows status file
+```
+
+### Handling shared/ Changes
+
+**Three strategies** (use based on situation):
+
+1. **Pre-Approval** (best for planned features):
+   - Identify all shared/ changes during planning
+   - Coordinator makes changes FIRST and merges to main
+   - All agents rebase before implementing
+
+2. **Just-In-Time** (good for discoveries during implementation):
+   - Agent documents needed change in status file
+   - User switches to Coordinator
+   - Coordinator makes change, merges to main
+   - Original agent rebases and continues
+
+3. **Batched Updates** (for multiple small changes):
+   - Agents accumulate requests in status files
+   - Coordinator reviews once per session/day
+   - Coordinator makes all changes in one commit
+   - All agents rebase on main
+
+### Parallel Exploration During Planning
+
+When starting new features, use Task tool to launch multiple **Explore agents in parallel** for fast context gathering:
+
+```typescript
+// Example: Launch 3 explore agents simultaneously
+Task(subagent_type: Explore) - "Find existing guild system patterns"
+Task(subagent_type: Explore) - "Find combat integration points"
+Task(subagent_type: Explore) - "Find test patterns for similar features"
+
+// All run concurrently, return results quickly
+// Then proceed with sequential implementation
+```
+
+**Key**: Parallel agents for READ operations (exploration/research), sequential work for WRITE operations (implementation).
+
 ## Communication Protocol
 
 1. If you need something from another agent's scope, describe the requirement — the user will relay it.

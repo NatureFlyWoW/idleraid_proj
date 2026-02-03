@@ -1,5 +1,10 @@
 # Frontend Agent Status
 
+> **Workflow**: Single-Session Multi-Agent with git branches
+> **Branch**: `agent/frontend`
+> **Scope**: `client/src/` (all UI components, pages, styles, React code)
+> **Handoff**: Document "Needs from [Agent]" for cross-agent dependencies
+
 ## Latest Update
 
 ## [2026-02-02 17:00]

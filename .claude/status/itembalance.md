@@ -1,5 +1,10 @@
 # Item Balance Agent Status
 
+> **Workflow**: Single-Session Multi-Agent with git branches
+> **Branch**: `agent/items`
+> **Scope**: `docs/item-catalog.md` (item stats, READ source for balance)
+> **Handoff**: Document "Needs from [Agent]" for cross-agent dependencies
+
 ## Latest Update
 
 ## [2026-02-02 19:30]

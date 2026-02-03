@@ -1,5 +1,10 @@
 # Backend Agent Status
 
+> **Workflow**: Single-Session Multi-Agent with git branches
+> **Branch**: `agent/backend`
+> **Scope**: `server/` (all backend code, API routes, game engine, database)
+> **Handoff**: Document "Needs from [Agent]" for cross-agent dependencies
+
 ## Latest Update
 
 ## [2026-02-02 19:30]

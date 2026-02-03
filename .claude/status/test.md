@@ -1,5 +1,10 @@
 # Test Agent Status
 
+> **Workflow**: Single-Session Multi-Agent with git branches
+> **Branch**: `agent/test`
+> **Scope**: `tests/` (all test files, test utilities, test data)
+> **Handoff**: Document "Needs from [Agent]" for cross-agent dependencies
+
 ## Latest Update
 
 ## [2026-02-02 19:25] - Seed Tests Updated + Talents Tests Added
