@@ -143,6 +143,85 @@ export function getDefaultBuffEffects(): BuffEffects {
   };
 }
 
+/**
+ * Calculates talent bonuses from character's talent allocation
+ */
+export function calculateTalentBonuses(
+  characterClass: CharacterClass,
+  talentTree1Points: Record<string, number> | null,
+  talentTree2Points: Record<string, number> | null,
+  talentTree3Points: Record<string, number> | null
+): TalentBonuses {
+  const bonuses = getDefaultTalentBonuses();
+  const classdef = getClassDefinition(characterClass);
+
+  // Process each talent tree
+  const allocations = [
+    talentTree1Points || {},
+    talentTree2Points || {},
+    talentTree3Points || {},
+  ];
+
+  allocations.forEach((allocation, treeIndex) => {
+    const talentTree = classdef.talentTrees[treeIndex];
+    if (!talentTree) return;
+
+    // Apply each talented point
+    Object.entries(allocation).forEach(([talentId, ranks]) => {
+      if (ranks <= 0) return;
+
+      const talent = talentTree.talents.find(t => t.id === talentId);
+      if (!talent) return;
+
+      // Apply each effect of this talent
+      talent.effects.forEach(effect => {
+        const value = effect.valuePerRank * ranks;
+
+        switch (effect.type) {
+          case 'stat_bonus':
+            if (!effect.stat) return;
+
+            // Map effect stats to bonus fields
+            const statMap: Record<string, keyof TalentBonuses> = {
+              'strength': effect.isPercentage ? 'strengthPercent' : 'strength',
+              'agility': effect.isPercentage ? 'agilityPercent' : 'agility',
+              'intellect': effect.isPercentage ? 'intellectPercent' : 'intellect',
+              'stamina': effect.isPercentage ? 'staminaPercent' : 'stamina',
+              'spirit': effect.isPercentage ? 'spiritPercent' : 'spirit',
+              'meleeAttackPower': 'meleeAttackPowerPercent',
+              'rangedAttackPower': 'rangedAttackPowerPercent',
+              'spellPower': 'spellPowerPercent',
+              'critChance': 'critChanceFlat',
+              'spellCritChance': 'spellCritChanceFlat',
+              'hitChance': 'hitChanceFlat',
+              'armor': 'armorPercent',
+              'health': 'healthPercent',
+              'mana': 'manaPercent',
+              'damage': 'damagePercent',
+              'healing': 'healingPercent',
+            };
+
+            const bonusField = statMap[effect.stat];
+            if (bonusField) {
+              bonuses[bonusField] += value;
+            }
+            break;
+
+          // TODO: Implement ability_unlock, ability_modifier, and proc effects
+          // These will require integration with CombatSimulator
+          case 'ability_unlock':
+          case 'ability_modifier':
+          case 'proc':
+            // Placeholder for future implementation
+            break;
+        }
+      });
+    });
+  });
+
+  return bonuses;
+}
+
 // ============= STAT CALCULATION =============
 
 /**

@@ -69,6 +69,7 @@ export interface IUserStorage {
   getUserById(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
   updateUserLastLogin(id: number): Promise<void>;
 }
 
@@ -85,6 +86,14 @@ class UserStorage implements IUserStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User> {
+    const [user] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    if (!user) {
+      throw new Error(`User with id ${id} not found`);
+    }
     return user;
   }
 

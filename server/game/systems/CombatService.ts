@@ -5,7 +5,7 @@
 import type { Character, Quest, Dungeon, DungeonBoss, Difficulty, ItemSlot } from '@shared/schema';
 import type { CombatStats, CombatSimulationInput, CombatSimulationOutput, EnemyDefinition, AbilityDefinition } from '@shared/types';
 import { simulateCombat } from '../engine/CombatSimulator';
-import { calculateCombatStats, getDefaultTalentBonuses, getDefaultBuffEffects, type CharacterData, type EquipmentSet } from './StatCalculator';
+import { calculateCombatStats, calculateTalentBonuses, getDefaultBuffEffects, type CharacterData, type EquipmentSet } from './StatCalculator';
 import { getClassDefinition } from '../data/classes';
 import { storage } from '../../storage';
 
@@ -220,11 +220,19 @@ export async function runQuestCombat(
   const characterData = buildCharacterData(character);
   const equipment = await buildEquipmentSet(character.id);
 
+  // Calculate talent bonuses from character's allocation
+  const talentBonuses = calculateTalentBonuses(
+    character.characterClass,
+    character.talentTree1Points,
+    character.talentTree2Points,
+    character.talentTree3Points
+  );
+
   // Calculate combat stats
   const { stats } = calculateCombatStats(
     characterData,
     equipment,
-    getDefaultTalentBonuses(),
+    talentBonuses,
     getDefaultBuffEffects()
   );
 
@@ -297,11 +305,19 @@ export async function runDungeonCombat(
   const characterData = buildCharacterData(character);
   const equipment = await buildEquipmentSet(character.id);
 
+  // Calculate talent bonuses from character's allocation
+  const talentBonuses = calculateTalentBonuses(
+    character.characterClass,
+    character.talentTree1Points,
+    character.talentTree2Points,
+    character.talentTree3Points
+  );
+
   // Calculate combat stats
   const { stats } = calculateCombatStats(
     characterData,
     equipment,
-    getDefaultTalentBonuses(),
+    talentBonuses,
     getDefaultBuffEffects()
   );
 
@@ -507,11 +523,19 @@ export async function previewCombat(
   const characterData = buildCharacterData(character);
   const equipment = await buildEquipmentSet(character.id);
 
+  // Calculate talent bonuses from character's allocation
+  const talentBonuses = calculateTalentBonuses(
+    character.characterClass,
+    character.talentTree1Points,
+    character.talentTree2Points,
+    character.talentTree3Points
+  );
+
   // Calculate combat stats
   const { stats } = calculateCombatStats(
     characterData,
     equipment,
-    getDefaultTalentBonuses(),
+    talentBonuses,
     getDefaultBuffEffects()
   );
 
