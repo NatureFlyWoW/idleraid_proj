@@ -1,9 +1,14 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
+  test: {
+    root: path.resolve(import.meta.dirname),
+    include: ["tests/**/*.test.ts"],
+    environment: "node",
+  },
   plugins: [
     react(),
     runtimeErrorOverlay(),

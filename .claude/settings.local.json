@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pkill:*)",
+      "Bash(fuser:*)",
+      "mcp__ide__getDiagnostics"
+    ]
+  }
+}

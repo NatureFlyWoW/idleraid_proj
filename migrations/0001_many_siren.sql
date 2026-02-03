@@ -1,0 +1,1 @@
+ALTER TABLE "characters" ADD COLUMN "activity_completes_at" timestamp;

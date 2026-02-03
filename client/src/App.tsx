@@ -2,20 +2,43 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { Layout } from "@/components/Layout";
-import Home from "@/pages/Home";
-import Demo from "@/pages/Demo";
+import CharacterSelect from "@/pages/CharacterSelect";
+import CharacterCreate from "@/pages/CharacterCreate";
+import Game from "@/pages/Game";
+import ArtStyleDemo from "@/components/game/ArtStyleDemo";
+import { CharacterPortraitDemo } from "@/components/game/CharacterPortrait";
+import PortraitGallery from "@/components/game/PortraitGallery";
+import DevTest, { DevBadge } from "@/pages/DevTest";
+import CharacterSheet from "@/pages/CharacterSheet";
+import Inventory from "@/pages/Inventory";
+import ZoneSelection from "@/pages/ZoneSelection";
+import QuestLog from "@/pages/QuestLog";
+import DungeonSelection from "@/pages/DungeonSelection";
+import TalentPage from "@/pages/TalentPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
-    <Layout>
+    <div className="min-h-screen bg-background">
       <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/demo" component={Demo} />
+        <Route path="/" component={CharacterSelect} />
+        <Route path="/create" component={CharacterCreate} />
+        <Route path="/game/:characterId" component={Game} />
+        <Route path="/styles" component={ArtStyleDemo} />
+        <Route path="/portraits" component={CharacterPortraitDemo} />
+        <Route path="/gallery" component={PortraitGallery} />
+        <Route path="/dev" component={DevTest} />
+        <Route path="/character/:id/stats" component={CharacterSheet} />
+        <Route path="/character/:id/inventory" component={Inventory} />
+        <Route path="/character/:id/zones" component={ZoneSelection} />
+        <Route path="/character/:id/quests" component={QuestLog} />
+        <Route path="/character/:id/dungeons" component={DungeonSelection} />
+        <Route path="/character/:id/talents" component={TalentPage} />
         <Route component={NotFound} />
       </Switch>
-    </Layout>
+      {/* Floating DEV badge - only visible in development */}
+      <DevBadge />
+    </div>
   );
 }
 

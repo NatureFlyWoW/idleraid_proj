@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { seedStartingContent } from "./game/data/seed";
 
 const app = express();
 const httpServer = createServer(app);
@@ -62,6 +63,13 @@ app.use((req, res, next) => {
 (async () => {
   await registerRoutes(httpServer, app);
 
+  // Seed starting content if not already present
+  try {
+    await seedStartingContent();
+  } catch (err) {
+    log(`Seed warning: ${err}`, 'seed');
+  }
+
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -90,14 +98,45 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`serving on port ${port}`);
-    },
-  );
+  let retryCount = 0;
+  const maxRetries = 3;
+
+  const startServer = () => {
+    httpServer.listen(
+      {
+        port,
+        host: "0.0.0.0",
+        reusePort: true,
+      },
+      () => {
+        log(`serving on port ${port}`);
+      },
+    );
+  };
+
+  httpServer.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      retryCount++;
+      if (retryCount > maxRetries) {
+        console.error(`Port ${port} is still in use after ${maxRetries} attempts. Please manually kill the process using the port.`);
+        console.error(`Run: fuser -k ${port}/tcp`);
+        process.exit(1);
+      }
+      log(`Port ${port} is in use (attempt ${retryCount}/${maxRetries}), attempting to free it...`);
+      import('child_process').then(({ exec }) => {
+        // Try multiple methods to kill the process
+        exec(`fuser -k ${port}/tcp 2>/dev/null; lsof -ti:${port} | xargs kill -9 2>/dev/null`, () => {
+          setTimeout(() => {
+            log(`Retrying server start...`);
+            startServer();
+          }, 1500);
+        });
+      });
+    } else {
+      console.error('Server error:', err);
+      process.exit(1);
+    }
+  });
+
+  startServer();
 })();

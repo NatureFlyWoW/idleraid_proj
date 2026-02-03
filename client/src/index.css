@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -38,6 +38,7 @@
 
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 }
 
 .dark {
@@ -90,4 +91,157 @@
 }
 .dark .glass-panel {
   @apply bg-black/80 border-white/10;
+}
+
+/* ASCII/Retro Game Utilities */
+.font-game {
+  font-family: var(--font-mono);
+}
+
+.ascii-frame {
+  @apply font-mono text-amber-600 whitespace-pre;
+}
+
+.ascii-frame-double {
+  border: 2px solid currentColor;
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+/* Item Rarity Glows */
+.rarity-common { color: #9d9d9d; }
+.rarity-uncommon { color: #1eff00; }
+.rarity-rare { color: #0070dd; }
+.rarity-epic { color: #a335ee; }
+.rarity-legendary {
+  color: #ff8000;
+  text-shadow: 0 0 8px rgba(255, 128, 0, 0.5);
+}
+
+/* WoW Class Colors */
+.class-warrior { color: #C79C6E; }
+.class-paladin { color: #F58CBA; }
+.class-hunter { color: #ABD473; }
+.class-rogue { color: #FFF569; }
+.class-priest { color: #FFFFFF; }
+.class-mage { color: #69CCF0; }
+.class-druid { color: #FF7D0A; }
+
+/* Resource Bar Colors */
+.bar-health { @apply bg-gradient-to-r from-red-900 to-red-600; }
+.bar-mana { @apply bg-gradient-to-r from-blue-900 to-blue-500; }
+.bar-rage { @apply bg-gradient-to-r from-orange-900 to-orange-500; }
+.bar-energy { @apply bg-gradient-to-r from-yellow-900 to-yellow-500; }
+.bar-xp { @apply bg-gradient-to-r from-purple-900 to-purple-500; }
+
+/* ASCII Progress Bar Styling */
+.ascii-bar {
+  font-family: var(--font-mono);
+  letter-spacing: -0.05em;
+}
+
+/* Parchment/Grimoire Background */
+.parchment-bg {
+  background: linear-gradient(135deg, #2a2318 0%, #1a1610 50%, #2a2318 100%);
+  box-shadow: inset 0 0 60px rgba(0,0,0,0.5);
+}
+
+/* Terminal Dark Background */
+.terminal-bg {
+  background: #0a0a0a;
+}
+
+/* Text Glow Effects */
+.text-glow-amber {
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+}
+.text-glow-red {
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+.text-glow-blue {
+  text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+.text-glow-purple {
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+}
+
+/* Toast Animation Keyframes */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 1s linear infinite;
+}
+
+/* Combat Animation Classes */
+@keyframes combat-hit {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes level-up-glow {
+  0%, 100% {
+    text-shadow: 0 0 5px rgba(251, 191, 36, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.8), 0 0 30px rgba(251, 191, 36, 0.4);
+    transform: scale(1.05);
+  }
+}
+
+@keyframes loot-drop {
+  0% {
+    transform: translateY(-20px) rotate(-5deg);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(5px) rotate(2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-combat-hit {
+  animation: combat-hit 0.2s ease-in-out;
+}
+
+.animate-level-up {
+  animation: level-up-glow 1.5s ease-in-out infinite;
+}
+
+.animate-loot-drop {
+  animation: loot-drop 0.4s ease-out;
 }

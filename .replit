@@ -9,6 +9,16 @@ channel = "stable-24_05"
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 27089
+externalPort = 3001
+exposeLocalhost = true
+
+[[ports]]
+localPort = 30198
+externalPort = 3000
+exposeLocalhost = true
+
 [env]
 PORT = "5000"
 
@@ -37,3 +47,10 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[userenv]
+
+[userenv.shared]
+GITHUB_TOKEN = "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"
+GITHUB_USER = "NatureFlyWoW"
+GITHUB_REPO = "idleraid_proj"
