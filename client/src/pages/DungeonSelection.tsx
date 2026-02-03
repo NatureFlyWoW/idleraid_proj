@@ -401,7 +401,7 @@ export default function DungeonSelection() {
   const [, navigate] = useLocation();
   const characterId = parseInt(params.id || "0");
 
-  const { data: character, isLoading } = useQuery({
+  const { data: character, isLoading: characterLoading } = useQuery({
     queryKey: ["character", characterId],
     queryFn: async () => {
       const response = await fetch(
@@ -413,11 +413,43 @@ export default function DungeonSelection() {
     enabled: characterId > 0,
   });
 
+  // Fetch dungeons from API
+  const { data: apiDungeons, isLoading: dungeonsLoading } = useQuery({
+    queryKey: ["dungeons"],
+    queryFn: async () => {
+      const response = await fetch(buildUrl(api.dungeons.list.path));
+      if (!response.ok) throw new Error("Failed to fetch dungeons");
+      return response.json();
+    },
+  });
+
+  // Use API dungeons if available, fall back to sample data
+  const dungeons = apiDungeons && apiDungeons.length > 0 ? apiDungeons.map((d: any) => ({
+    id: d.id.toString(),
+    name: d.name,
+    shortName: d.shortName || d.name.substring(0, 2).toUpperCase(),
+    levelRange: [d.levelMin, d.levelMax] as [number, number],
+    description: d.description || "",
+    location: d.location || "Unknown",
+    bosses: [], // Would need to fetch with api.dungeons.get
+    difficulty: "normal" as DungeonDifficulty,
+    estimatedDuration: d.estimatedDuration || "30-45 min",
+    recommendedPartySize: d.recommendedPartySize || 5,
+    rewards: {
+      xpRange: [1000, 5000] as [number, number],
+      goldRange: [50, 200] as [number, number],
+      lootLevel: "blue" as "green" | "blue" | "purple",
+      uniqueDrops: [],
+    },
+  })) : DUNGEONS;
+
   const handleEnterDungeon = (dungeonId: string) => {
     console.log(`Entering dungeon: ${dungeonId}`);
     // Would navigate to dungeon instance or start dungeon
     navigate(`/game/${characterId}`);
   };
+
+  const isLoading = characterLoading || dungeonsLoading;
 
   if (isLoading) {
     return (
@@ -443,10 +475,10 @@ export default function DungeonSelection() {
     );
   }
 
-  const unlockedDungeons = DUNGEONS.filter(
+  const unlockedDungeons = dungeons.filter(
     (d) => character.level >= d.levelRange[0]
   );
-  const lockedDungeons = DUNGEONS.filter(
+  const lockedDungeons = dungeons.filter(
     (d) => character.level < d.levelRange[0]
   );
 
