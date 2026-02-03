@@ -231,21 +231,25 @@ export default function CharacterSelect() {
 
           {/* Create New Character Card */}
           {canCreateMore && (
-            <TerminalPanel
-              variant="yellow"
-              className="cursor-pointer hover:border-yellow-500 transition-all hover:shadow-[0_0_15px_rgba(202,138,4,0.3)]"
+            <div
               onClick={() => navigate("/create")}
+              className="cursor-pointer"
             >
-              <div className="flex flex-col items-center justify-center h-full min-h-[280px] text-yellow-400">
-                <pre className="text-5xl mb-4">╋</pre>
-                <p className="text-lg font-bold uppercase tracking-wider mb-2">
-                  Create New Character
-                </p>
-                <p className="text-xs text-yellow-600">
-                  {characters?.length ?? 0}/{maxCharacters} slots used
-                </p>
-              </div>
-            </TerminalPanel>
+              <TerminalPanel
+                variant="yellow"
+                className="hover:border-yellow-500 transition-all hover:shadow-[0_0_15px_rgba(202,138,4,0.3)]"
+              >
+                <div className="flex flex-col items-center justify-center h-full min-h-[280px] text-yellow-400">
+                  <pre className="text-5xl mb-4">╋</pre>
+                  <p className="text-lg font-bold uppercase tracking-wider mb-2">
+                    Create New Character
+                  </p>
+                  <p className="text-xs text-yellow-600">
+                    {characters?.length ?? 0}/{maxCharacters} slots used
+                  </p>
+                </div>
+              </TerminalPanel>
+            </div>
           )}
         </div>
 
