@@ -55,9 +55,13 @@ export function getClassStartingStats(classId: CharacterClass) {
     maxHealth: classDef.baseStats.health + (classDef.baseStats.stamina * classDef.statScaling.staminaToHealth),
     currentResource: classDef.resourceType === 'mana'
       ? classDef.baseStats.resource + (classDef.baseStats.intellect * classDef.statScaling.intellectToMana)
-      : 0,
+      : classDef.resourceType === 'energy'
+        ? classDef.baseStats.resource  // Energy starts full (100)
+        : 0,                           // Rage starts at 0 (builds in combat)
     maxResource: classDef.resourceType === 'mana'
       ? classDef.baseStats.resource + (classDef.baseStats.intellect * classDef.statScaling.intellectToMana)
-      : 100,
+      : classDef.resourceType === 'energy'
+        ? classDef.baseStats.resource  // Energy max (100)
+        : 100,                         // Rage max (standard cap)
   };
 }
