@@ -71,8 +71,36 @@ else
 fi
 
 echo ""
-echo "✅ Ready to work! Remember to:"
-echo "   1. Update .claude/status/$AGENT.md when done"
-echo "   2. Commit with '[$(echo $AGENT | sed 's/\b\(.\)/\u\1/g')] Message' format"
-echo "   3. Document any handoffs to other agents"
-echo ""
+
+# Special instructions for Coordinator
+if [ "$AGENT" = "coordinator" ]; then
+  echo "🔍 COORDINATOR MODE - Enhanced Workflow:"
+  echo ""
+  echo "   Step 1: Tell Claude to analyze changes"
+  echo "   ────────────────────────────────────────"
+  echo "   Prompt: \"I'm the Coordinator. Check changes from agents.\""
+  echo ""
+  echo "   Step 2: Coordinator will:"
+  echo "   - Read all .claude/status/*.md files"
+  echo "   - Identify 'Needs from Coordinator' sections"
+  echo "   - Analyze changes against original plan"
+  echo "   - Report: 'Agent X/Y/Z needs these shared/ changes: [summary]'"
+  echo ""
+  echo "   Step 3: Review and validate:"
+  echo "   - Evaluate if changes align with architecture"
+  echo "   - Flag potential issues or conflicts"
+  echo "   - Suggest improvements if needed"
+  echo ""
+  echo "   Step 4: Implement validated changes:"
+  echo "   - Update shared/ files"
+  echo "   - Commit with [Coordinator] prefix"
+  echo "   - Merge to main"
+  echo "   - Update .claude/status/coordinator.md"
+  echo ""
+else
+  echo "✅ Ready to work! Remember to:"
+  echo "   1. Update .claude/status/$AGENT.md when done"
+  echo "   2. Commit with '[$(echo $AGENT | sed 's/\b\(.\)/\u\1/g')] Message' format"
+  echo "   3. Document any handoffs to other agents"
+  echo ""
+fi

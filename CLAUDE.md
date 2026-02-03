@@ -186,6 +186,70 @@ This project uses a **single Claude session** with agent role-switching via git 
 3. **Rebase if needed**: `git rebase main`
 4. **Continue work** based on status file handoff instructions
 
+### Special: Coordinator Handoff Protocol
+
+When an agent needs shared/ changes, follow this workflow:
+
+**Step 1: Agent finishes work and documents needs**
+```bash
+# Agent updates their status file with "Needs from Coordinator"
+# Commits their work on their agent branch
+git add [files]
+git commit -m "[AgentName] Description of work"
+```
+
+**Step 2: Switch to Coordinator**
+```bash
+git checkout agent/coordinator
+git rebase main
+```
+
+**Step 3: Coordinator analyzes changes**
+
+Tell Claude: **"I'm the Coordinator. Check changes from agents."**
+
+Coordinator will:
+- Read all `.claude/status/*.md` files
+- Identify which agents have "Needs from Coordinator" sections
+- Analyze changes against original plan (from `.claude/plans/`)
+- Weigh usefulness and validate approach
+- Report: **"Agent X/Y/Z needs these shared/ changes: [summary]"**
+
+**Step 4: Coordinator reviews and implements**
+
+Tell Claude: **"I'm the Coordinator. Agent X/Y/Z needs these shared/ changes: [paste from status]"**
+
+Coordinator will:
+- Evaluate if changes align with architecture
+- Flag potential issues or conflicts
+- Implement validated changes to `shared/`
+- Commit with `[Coordinator]` prefix
+- Merge to main
+- Update `.claude/status/coordinator.md`
+
+```bash
+# Coordinator merges to main
+git checkout main
+git merge agent/coordinator
+git push  # (if pushing to remote)
+```
+
+**Step 5: Next agent rebases and continues**
+```bash
+# Switch to next agent
+git checkout agent/frontend
+git rebase main  # Get shared/ updates
+```
+
+Tell Claude:
+```
+"I'm the Frontend Agent. Backend has completed the talent reset endpoint.
+ Status: [paste from backend.md]
+ I need to build the UI for the reset button."
+```
+
+Frontend continues work with new shared/ contracts.
+
 ### Helper Script (Optional)
 
 Use `script/agent-switch.sh` for quick agent switching:
@@ -197,24 +261,34 @@ Use `script/agent-switch.sh` for quick agent switching:
 
 ### Handling shared/ Changes
 
-**Three strategies** (use based on situation):
+**Use strategies in this priority order:**
 
-1. **Pre-Approval** (best for planned features):
-   - Identify all shared/ changes during planning
-   - Coordinator makes changes FIRST and merges to main
-   - All agents rebase before implementing
+**1. Strategy A: Pre-Approval** (PRIMARY - use whenever possible)
+- **When**: Planning new features, starting major work
+- **How**:
+  - During planning phase, identify ALL shared/ changes needed
+  - Coordinator makes changes FIRST and merges to main
+  - All agents rebase before implementing
+  - Agents work with stable shared/ contract
+- **Why**: Prevents circular dependencies and rework
 
-2. **Just-In-Time** (good for discoveries during implementation):
-   - Agent documents needed change in status file
-   - User switches to Coordinator
-   - Coordinator makes change, merges to main
-   - Original agent rebases and continues
+**2. Strategy B: Just-In-Time** (SECONDARY - for unexpected needs)
+- **When**: Agent discovers need during implementation
+- **How**:
+  - Agent documents needed change in status file
+  - User switches to Coordinator
+  - Coordinator validates, implements, merges to main
+  - Original agent rebases and continues
+- **Why**: Handles discoveries without blocking progress
 
-3. **Batched Updates** (for multiple small changes):
-   - Agents accumulate requests in status files
-   - Coordinator reviews once per session/day
-   - Coordinator makes all changes in one commit
-   - All agents rebase on main
+**3. Strategy C: Batched Updates** (LAST RESORT - avoid if possible)
+- **When**: Multiple small, non-blocking changes accumulate
+- **How**:
+  - Agents accumulate requests in status files
+  - Coordinator reviews once per session
+  - Coordinator makes all changes in one commit
+  - All agents rebase on main
+- **Why**: Only use when changes are truly non-urgent and won't block other work
 
 ### Parallel Exploration During Planning
 
@@ -231,6 +305,197 @@ Task(subagent_type: Explore) - "Find test patterns for similar features"
 ```
 
 **Key**: Parallel agents for READ operations (exploration/research), sequential work for WRITE operations (implementation).
+
+---
+
+## Migration Guide: Getting to This Workflow
+
+**If you're setting up this workflow from scratch or migrating from multi-terminal setup, follow these steps:**
+
+### Step 1: Verify Git Setup
+
+```bash
+# Ensure you're on main branch
+git checkout main
+
+# Ensure main is clean (commit or stash any changes)
+git status
+
+# Optionally pull latest from remote
+git pull origin main
+```
+
+### Step 2: Create Agent Branches
+
+```bash
+# Delete old agent branches if they exist
+git branch -D agent/backend agent/frontend agent/coordinator agent/test agent/gamedesign agent/items 2>/dev/null
+
+# Create fresh agent branches from main
+git checkout -b agent/backend && git checkout main
+git checkout -b agent/frontend && git checkout main
+git checkout -b agent/coordinator && git checkout main
+git checkout -b agent/test && git checkout main
+git checkout -b agent/gamedesign && git checkout main
+git checkout -b agent/items && git checkout main
+```
+
+### Step 3: Verify Status Files Exist
+
+```bash
+# Ensure all status files have workflow headers
+ls -la .claude/status/
+
+# Should see:
+# - backend.md
+# - frontend.md
+# - test.md
+# - coordinator.md
+# - gamedesign.md
+# - itembalance.md
+# - itemart.md
+```
+
+If any are missing, they should have this format:
+
+```markdown
+# [Agent Name] Agent Status
+
+> **Workflow**: Single-Session Multi-Agent with git branches
+> **Branch**: `agent/[name]`
+> **Scope**: [directories owned]
+> **Handoff**: Document "Needs from [Agent]" for cross-agent dependencies
+
+## Latest Update
+
+[Status entries here...]
+```
+
+### Step 4: Test Agent Switching
+
+```bash
+# Test the helper script
+./script/agent-switch.sh backend
+
+# Should show:
+# - Branch switch confirmation
+# - Rebase status
+# - Latest status from backend.md
+# - Ready to work message
+```
+
+### Step 5: Configure Git Identity (if needed)
+
+```bash
+# If git asks for identity during commits, configure it:
+git config user.name "Your Name"
+git config user.email "your.email@example.com"
+
+# Or use project defaults:
+git config user.name "IdleRaiders Dev"
+git config user.email "dev@idleraiders.local"
+```
+
+### Step 6: Test the Workflow with Simple Task
+
+Try a small test to verify workflow:
+
+**Example: Add a TODO comment to a file**
+
+```bash
+# 1. Switch to Backend
+./script/agent-switch.sh backend
+
+# 2. Tell Claude: "I'm the Backend Agent. Add a TODO comment to server/routes.ts"
+# Claude makes change, commits
+
+# 3. If shared/ change needed:
+#    Backend updates .claude/status/backend.md with "Needs from Coordinator"
+#    User switches: ./script/agent-switch.sh coordinator
+#    Tell Claude: "I'm the Coordinator. Check changes from agents."
+
+# 4. Test the full cycle to verify everything works
+```
+
+### Step 7: Push Branches to Remote (Optional)
+
+```bash
+# Only if you want remote backups of agent branches
+git push -u origin agent/backend
+git push -u origin agent/frontend
+git push -u origin agent/coordinator
+git push -u origin agent/test
+git push -u origin agent/gamedesign
+git push -u origin agent/items
+```
+
+### Step 8: Start Your First Real Feature
+
+Now you're ready to use the workflow for real work:
+
+1. **Planning Phase**: Launch Explore agents in parallel to gather context
+2. **Coordinator Phase**: Define shared/ changes upfront (Strategy A)
+3. **Implementation Phase**: Agents work sequentially with clear handoffs
+4. **Integration Phase**: Merge completed work to main
+
+---
+
+## Troubleshooting Common Issues
+
+**Issue: Rebase conflicts when switching agents**
+```bash
+# If rebase fails with conflicts:
+git rebase --abort
+git stash  # Stash uncommitted changes
+git checkout agent/[name]
+git rebase main
+git stash pop  # Reapply changes if needed
+```
+
+**Issue: Agent branch diverged from main**
+```bash
+# To see how far behind main:
+git checkout agent/backend
+git log main..HEAD  # Shows commits on agent branch not in main
+git log HEAD..main  # Shows commits on main not in agent branch
+
+# To sync with main:
+git rebase main
+```
+
+**Issue: Forgot to update status file**
+```bash
+# Quickly check what changed:
+git diff HEAD~1
+
+# Update status file, amend last commit:
+# Edit .claude/status/[agent].md
+git add .claude/status/[agent].md
+git commit --amend --no-edit
+```
+
+**Issue: Accidentally committed to wrong branch**
+```bash
+# If you committed Backend work on Frontend branch:
+git log -1  # Note the commit hash
+git checkout agent/backend
+git cherry-pick <commit-hash>  # Apply to correct branch
+git checkout agent/frontend
+git reset --hard HEAD~1  # Remove from wrong branch
+```
+
+**Issue: Need to undo Coordinator merge to main**
+```bash
+# If Coordinator merged bad changes:
+git checkout main
+git log  # Find the merge commit
+git revert -m 1 <merge-commit-hash>  # Revert the merge
+git push  # Update remote
+
+# Then agents can rebase on new main
+```
+
+---
 
 ## Communication Protocol
 
