@@ -7,6 +7,21 @@
 
 ## Latest Update
 
+## [2026-02-04 16:00]
+- Completed:
+  - **Task 1.1: Quest Route Definitions**
+    - Added `complete` route: POST /api/characters/:characterId/quests/:questId/complete
+    - Added `updateProgress` route: PATCH /api/characters/:characterId/quests/:questId/progress
+    - Complete response includes: xpAwarded, goldAwarded, itemsAwarded array, leveledUp, newLevel
+    - UpdateProgress input includes: objectiveIndex, progressDelta with validation
+- Changed:
+  - `shared/routes.ts` (MODIFIED - added 2 quest routes)
+- Needs from Coordinator: N/A (I am Coordinator)
+- Needs from other agents:
+  - Backend Agent can now implement the quest turn-in and progress update endpoints
+- Blocked on: Nothing
+- Next: Merge to main so Backend can start implementation
+
 ## [2026-02-04 10:00]
 - Completed:
   - **Created ASCII Art Style Guide Skill:**
