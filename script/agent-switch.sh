@@ -31,11 +31,24 @@ fi
 echo "🔄 Switching to agent: $AGENT"
 echo ""
 
+# Check for uncommitted changes and stash them
+STASHED=false
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "📦 Stashing uncommitted changes..."
+  git stash push -m "agent-switch: auto-stash before switching to $AGENT"
+  STASHED=true
+fi
+
 # Switch to agent branch
 git checkout agent/$AGENT
 
 if [ $? -ne 0 ]; then
   echo "❌ Failed to switch to agent/$AGENT branch"
+  # Restore stash if we stashed
+  if [ "$STASHED" = true ]; then
+    echo "📦 Restoring stashed changes..."
+    git stash pop
+  fi
   exit 1
 fi
 
@@ -47,7 +60,22 @@ git rebase main
 if [ $? -ne 0 ]; then
   echo "⚠️  Rebase failed - you may need to resolve conflicts"
   echo "   Run 'git rebase --abort' to cancel, or resolve and 'git rebase --continue'"
+  # Note: stash is still available if needed
+  if [ "$STASHED" = true ]; then
+    echo "   Your stashed changes are still available: 'git stash pop'"
+  fi
   exit 1
+fi
+
+# Restore stashed changes if any
+if [ "$STASHED" = true ]; then
+  echo ""
+  echo "📦 Restoring stashed changes..."
+  git stash pop
+  if [ $? -ne 0 ]; then
+    echo "⚠️  Warning: Could not restore stashed changes automatically"
+    echo "   Run 'git stash pop' manually to restore them"
+  fi
 fi
 
 echo ""
