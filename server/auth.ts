@@ -106,14 +106,58 @@ export function setupAuth(app: Express): void {
 
 // ============= AUTH MIDDLEWARE =============
 
+// Dev mode flag - set to true to bypass authentication for testing
+const DEV_MODE = process.env.NODE_ENV !== 'production';
+let devUser: User | null = null;
+
+/**
+ * Get or create dev user for testing
+ */
+async function getOrCreateDevUser(): Promise<User> {
+  if (devUser) return devUser;
+
+  // Try to find existing dev user
+  let user = await storage.users.getUserByUsername('dev');
+
+  if (!user) {
+    // Create dev user
+    const passwordHash = await hashPassword('devpass123');
+    user = await storage.users.createUser({
+      username: 'dev',
+      passwordHash,
+    });
+  }
+
+  devUser = user;
+  return user;
+}
+
 /**
  * Middleware to require authentication
- * Responds with 401 if user is not authenticated
+ * In dev mode, auto-authenticates with dev user for easy testing
+ * Responds with 401 if user is not authenticated (in production)
  */
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   if (req.isAuthenticated() && req.user) {
     return next();
   }
+
+  // Dev mode bypass - auto-login for testing
+  if (DEV_MODE) {
+    getOrCreateDevUser().then(user => {
+      req.login(user, (err) => {
+        if (err) {
+          res.status(500).json({ message: 'Dev auto-login failed' });
+          return;
+        }
+        next();
+      });
+    }).catch(() => {
+      res.status(500).json({ message: 'Dev user creation failed' });
+    });
+    return;
+  }
+
   res.status(401).json({ message: 'Authentication required' });
 }
 
