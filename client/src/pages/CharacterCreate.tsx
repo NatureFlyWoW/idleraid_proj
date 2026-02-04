@@ -1,109 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@shared/routes";
-import { cn } from "@/lib/utils";
-import { ASCIIHeader, TerminalPanel, TerminalButton } from "@/components/game/TerminalPanel";
+import { AsciiArtDisplay } from "@/components/game/AsciiArtDisplay";
+import { getClassArt, ColorRegion } from "@/lib/asciiArt";
 
-// All classes that will eventually be available
+// All classes with descriptions
 const ALL_CLASSES = [
-  { id: "warrior", name: "Warrior", description: "Melee powerhouse using rage from combat", resourceType: "rage", armorType: "plate", implemented: true },
-  { id: "paladin", name: "Paladin", description: "Holy knight combining melee and divine magic", resourceType: "mana", armorType: "plate", implemented: false },
-  { id: "hunter", name: "Hunter", description: "Ranged damage dealer with animal companions", resourceType: "mana", armorType: "mail", implemented: false },
-  { id: "rogue", name: "Rogue", description: "Stealthy assassin using energy for strikes", resourceType: "energy", armorType: "leather", implemented: false },
-  { id: "priest", name: "Priest", description: "Devoted healer who can harness shadow magic", resourceType: "mana", armorType: "cloth", implemented: true },
-  { id: "mage", name: "Mage", description: "Master of arcane, fire, and frost magic", resourceType: "mana", armorType: "cloth", implemented: true },
-  { id: "druid", name: "Druid", description: "Shapeshifter who can fill any role", resourceType: "mana", armorType: "leather", implemented: false },
+  { id: "warrior", name: "Warrior", description: "Melee powerhouse using rage from combat. Masters of arms and protection.", resourceType: "rage", armorType: "plate" },
+  { id: "mage", name: "Mage", description: "Master of arcane, fire, and frost magic. High damage, low armor.", resourceType: "mana", armorType: "cloth" },
+  { id: "priest", name: "Priest", description: "Devoted healer channeling holy light. Can also harness shadow.", resourceType: "mana", armorType: "cloth" },
+  { id: "rogue", name: "Rogue", description: "Stealthy assassin using energy for quick strikes and poisons.", resourceType: "energy", armorType: "leather" },
+  { id: "hunter", name: "Hunter", description: "Ranged damage dealer with animal companions and traps.", resourceType: "mana", armorType: "mail" },
+  { id: "warlock", name: "Warlock", description: "Dark caster commanding demons and afflictions.", resourceType: "mana", armorType: "cloth" },
+  { id: "shaman", name: "Shaman", description: "Tribal elementalist calling upon fire, earth, and lightning.", resourceType: "mana", armorType: "mail" },
 ];
 
-// Class colors matching WoW palette
-const classColors: Record<string, string> = {
-  warrior: "#C79C6E",
-  paladin: "#F58CBA",
-  hunter: "#ABD473",
-  rogue: "#FFF569",
-  priest: "#FFFFFF",
-  mage: "#69CCF0",
-  druid: "#FF7D0A",
+// Base stats by class
+const CLASS_STATS: Record<string, { str: number; agi: number; int: number; sta: number; spi: number }> = {
+  warrior: { str: 8, agi: 4, int: 2, sta: 8, spi: 3 },
+  mage: { str: 2, agi: 3, int: 10, sta: 4, spi: 6 },
+  priest: { str: 2, agi: 3, int: 8, sta: 4, spi: 8 },
+  rogue: { str: 4, agi: 10, int: 2, sta: 5, spi: 4 },
+  hunter: { str: 4, agi: 8, int: 4, sta: 6, spi: 4 },
+  warlock: { str: 2, agi: 3, int: 9, sta: 5, spi: 6 },
+  shaman: { str: 5, agi: 4, int: 7, sta: 6, spi: 4 },
 };
 
-interface ClassCardProps {
-  classInfo: any;
-  selected: boolean;
-  onClick: () => void;
-  disabled: boolean;
-}
-
-function ClassCard({ classInfo, selected, onClick, disabled }: ClassCardProps) {
-  const color = classColors[classInfo.id];
-
-  return (
-    <div
-      onClick={onClick}
-      className={cn(
-        "relative border-2 p-4 cursor-pointer transition-all font-mono",
-        selected && !disabled && "border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.5)]",
-        !selected && !disabled && "border-green-700 hover:border-green-500",
-        disabled && "border-stone-800 opacity-40 cursor-not-allowed"
-      )}
-      style={{
-        backgroundColor: disabled ? "#0a0a0a" : selected ? "rgba(0, 0, 0, 0.8)" : "#000",
-      }}
-    >
-      {/* Class icon placeholder (can be replaced with pixel art later) */}
-      <div className="text-center mb-3">
-        <pre className="text-4xl" style={{ color: disabled ? "#444" : color }}>
-          {classInfo.id === "warrior" && "⚔"}
-          {classInfo.id === "paladin" && "✚"}
-          {classInfo.id === "hunter" && "⚑"}
-          {classInfo.id === "rogue" && "†"}
-          {classInfo.id === "priest" && "✞"}
-          {classInfo.id === "mage" && "★"}
-          {classInfo.id === "druid" && "❀"}
-        </pre>
-      </div>
-
-      {/* Class Name */}
-      <h3
-        className="text-lg font-bold uppercase tracking-wider text-center mb-2"
-        style={{ color: disabled ? "#666" : color }}
-      >
-        {classInfo.name}
-      </h3>
-
-      {/* Resource & Armor */}
-      <div className="text-xs text-center space-y-1 mb-3">
-        <div className={cn("uppercase", disabled ? "text-stone-600" : "text-green-500")}>
-          {classInfo.resourceType}
-        </div>
-        <div className={cn("uppercase", disabled ? "text-stone-700" : "text-green-600")}>
-          {classInfo.armorType} armor
-        </div>
-      </div>
-
-      {/* Description */}
-      <p className={cn("text-xs text-center leading-relaxed", disabled ? "text-stone-700" : "text-green-400")}>
-        {classInfo.description}
-      </p>
-
-      {/* Status */}
-      {disabled && (
-        <div className="absolute top-2 right-2">
-          <span className="text-xs text-stone-600 border border-stone-800 px-2 py-1 uppercase">
-            Soon
-          </span>
-        </div>
-      )}
-
-      {selected && !disabled && (
-        <div className="absolute -top-2 -right-2">
-          <span className="text-yellow-400 text-2xl animate-pulse">✓</span>
-        </div>
-      )}
-    </div>
-  );
-}
+// Class colors
+const classColors: Record<string, string> = {
+  warrior: "#C79C6E",
+  mage: "#69CCF0",
+  priest: "#FFFFFF",
+  rogue: "#FFF569",
+  hunter: "#ABD473",
+  warlock: "#9482C9",
+  shaman: "#0070DE",
+};
 
 export default function CharacterCreate() {
   const [, navigate] = useLocation();
@@ -111,7 +45,8 @@ export default function CharacterCreate() {
   const queryClient = useQueryClient();
 
   const [name, setName] = useState("");
-  const [selectedClass, setSelectedClass] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [phase, setPhase] = useState<"class" | "name" | "confirm">("class");
   const [error, setError] = useState<string | null>(null);
 
   // Fetch available classes from server
@@ -126,13 +61,73 @@ export default function CharacterCreate() {
 
   // Merge server data with local class info
   const classes = ALL_CLASSES.map(localClass => {
-    const serverClass = serverClasses?.find((c: any) => c.id === localClass.id);
+    const serverClass = serverClasses?.find((c: { id: string }) => c.id === localClass.id);
     return {
       ...localClass,
-      ...serverClass,
       implemented: !!serverClass,
     };
   });
+
+  const implementedClasses = classes.filter(c => c.implemented);
+  const selectedClass = implementedClasses[selectedIndex] || implementedClasses[0];
+
+  // Get the ASCII art for the selected class
+  const classArt = selectedClass ? getClassArt(selectedClass.id) : null;
+  const stats = selectedClass ? CLASS_STATS[selectedClass.id] : null;
+
+  // Keyboard navigation
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (phase === "class") {
+      switch (e.key) {
+        case "ArrowUp":
+          e.preventDefault();
+          setSelectedIndex(prev => (prev > 0 ? prev - 1 : implementedClasses.length - 1));
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          setSelectedIndex(prev => (prev < implementedClasses.length - 1 ? prev + 1 : 0));
+          break;
+        case "Enter":
+          e.preventDefault();
+          setPhase("name");
+          break;
+        case "Escape":
+          e.preventDefault();
+          navigate("/");
+          break;
+        default:
+          // Number key selection
+          const num = parseInt(e.key, 10);
+          if (num >= 1 && num <= implementedClasses.length) {
+            setSelectedIndex(num - 1);
+          } else if (num === 0) {
+            navigate("/");
+          }
+          break;
+      }
+    } else if (phase === "name") {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setPhase("class");
+      } else if (e.key === "Enter" && name.trim().length >= 2) {
+        e.preventDefault();
+        setPhase("confirm");
+      }
+    } else if (phase === "confirm") {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setPhase("name");
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        handleCreate();
+      }
+    }
+  }, [phase, selectedIndex, implementedClasses.length, name, navigate]);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   const createCharacterMutation = useMutation({
     mutationFn: async (data: { name: string; characterClass: string }) => {
@@ -141,20 +136,17 @@ export default function CharacterCreate() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
       const result = await response.json();
-
       if (!response.ok) {
         throw new Error(result.message || "Failed to create character");
       }
-
       return result;
     },
     onSuccess: (character) => {
       queryClient.invalidateQueries({ queryKey: ["characters"] });
       toast({
         title: "Character Created!",
-        description: `${character.name} the ${character.characterClass} is ready for adventure!`,
+        description: `${character.name} the ${character.characterClass} is ready!`,
       });
       navigate("/");
     },
@@ -163,165 +155,264 @@ export default function CharacterCreate() {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreate = () => {
     setError(null);
-
-    if (!name.trim()) {
-      setError("Please enter a character name");
-      return;
-    }
-
-    if (name.length < 2 || name.length > 24) {
+    if (!name.trim() || name.length < 2 || name.length > 24) {
       setError("Name must be between 2 and 24 characters");
       return;
     }
-
     if (!selectedClass) {
       setError("Please select a class");
       return;
     }
-
     createCharacterMutation.mutate({
       name: name.trim(),
-      characterClass: selectedClass,
+      characterClass: selectedClass.id,
     });
   };
 
-  const selectedClassInfo = classes.find(c => c.id === selectedClass);
+  // Build the terminal display
+  const termWidth = 80;
+  const hLine = "+" + "-".repeat(termWidth - 2) + "+";
+
+  const padLine = (content: string, color?: string): string => {
+    const innerWidth = termWidth - 4;
+    const trimmed = content.slice(0, innerWidth);
+    const padding = " ".repeat(Math.max(0, innerWidth - trimmed.length));
+    return "| " + trimmed + padding + " |";
+  };
 
   return (
-    <div className="min-h-screen bg-black p-4">
-      <div className="max-w-6xl mx-auto">
-        {/* ASCII Header */}
-        <ASCIIHeader variant="double">Create New Character</ASCIIHeader>
+    <div
+      className="min-h-screen p-4 flex items-center justify-center"
+      style={{
+        backgroundColor: "#000000",
+        fontFamily: "'Courier New', monospace",
+        color: "#00ff00",
+      }}
+    >
+      <div
+        style={{
+          width: `${termWidth}ch`,
+          lineHeight: 1.15,
+          whiteSpace: "pre",
+        }}
+      >
+        {/* Top border */}
+        <div>{hLine}</div>
 
-        <p className="text-center text-green-500 mb-8 font-mono text-sm uppercase tracking-wide">
-          &gt;&gt; Choose your class and begin your adventure in Idle Raiders &lt;&lt;
-        </p>
+        {/* Title */}
+        <div style={{ color: "#ffffff" }}>{padLine("Character Creation / " + (phase === "class" ? "Select Class" : phase === "name" ? "Enter Name" : "Confirm"))}</div>
+        <div>{hLine}</div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-8">
-            {/* Error Display */}
-            {error && (
-              <TerminalPanel variant="red">
-                <div className="text-center">
-                  <pre className="text-red-500 text-sm">
-                    ╔════════════════════════════════╗{"\n"}
-                    ║          ERROR                ║{"\n"}
-                    ╚════════════════════════════════╝
-                  </pre>
-                  <p className="text-red-400 mt-2">{error}</p>
+        {phase === "class" && (
+          <>
+            {/* ASCII Art Display - 60% of panel */}
+            <div style={{ paddingLeft: "2ch", paddingRight: "2ch" }}>
+              {classArt && (
+                <AsciiArtDisplay
+                  art={classArt.art}
+                  colorRegions={classArt.colors as ColorRegion[]}
+                  centered
+                />
+              )}
+            </div>
+
+            <div>{hLine}</div>
+
+            {/* Class description */}
+            <div style={{ color: "#ffffff" }}>{padLine(selectedClass?.name || "")}</div>
+            <div>{padLine(selectedClass?.description || "")}</div>
+            <div>{padLine("")}</div>
+
+            {/* Stats line */}
+            <div>
+              {padLine("")}
+              <span style={{ position: "relative", left: "4ch" }}>
+                <span style={{ color: "#ffffff" }}>STR </span>
+                <span style={{ color: "#00ff00" }}>{stats?.str || 0}</span>
+                <span style={{ color: "#666666" }}> / </span>
+                <span style={{ color: "#ffffff" }}>AGI </span>
+                <span style={{ color: "#00ff00" }}>{stats?.agi || 0}</span>
+                <span style={{ color: "#666666" }}> / </span>
+                <span style={{ color: "#ffffff" }}>INT </span>
+                <span style={{ color: "#00ff00" }}>{stats?.int || 0}</span>
+                <span style={{ color: "#666666" }}> / </span>
+                <span style={{ color: "#ffffff" }}>STA </span>
+                <span style={{ color: "#00ff00" }}>{stats?.sta || 0}</span>
+                <span style={{ color: "#666666" }}> / </span>
+                <span style={{ color: "#ffffff" }}>SPI </span>
+                <span style={{ color: "#00ff00" }}>{stats?.spi || 0}</span>
+              </span>
+            </div>
+
+            {/* Class bonus */}
+            <div style={{ color: "#ff00ff" }}>{padLine(`+${selectedClass?.resourceType?.toUpperCase()} resource  |  ${selectedClass?.armorType?.toUpperCase()} armor`)}</div>
+
+            <div>{hLine}</div>
+
+            {/* Menu */}
+            <div style={{ padding: "0 2ch" }}>
+              {implementedClasses.map((cls, idx) => {
+                const isSelected = idx === selectedIndex;
+                const prefix = isSelected ? ">" : " ";
+                const color = isSelected ? "#ffff00" : "#00ff00";
+                return (
+                  <div
+                    key={cls.id}
+                    style={{ color, cursor: "pointer" }}
+                    onClick={() => setSelectedIndex(idx)}
+                    onDoubleClick={() => setPhase("name")}
+                  >
+                    {prefix} {idx + 1} - {cls.name}
+                  </div>
+                );
+              })}
+              <div style={{ marginTop: "0.5em" }}>
+                <div
+                  style={{ color: selectedIndex === -1 ? "#ffff00" : "#00ff00", cursor: "pointer" }}
+                  onClick={() => navigate("/")}
+                >
+                  {"  "}0 - Back
                 </div>
-              </TerminalPanel>
-            )}
+              </div>
+            </div>
 
-            {/* Character Name Input */}
-            <TerminalPanel variant="green">
-              <div className="space-y-3">
-                <label className="text-green-400 uppercase tracking-wider text-sm font-bold">
-                  Character Name
-                </label>
+            <div>{hLine}</div>
+
+            {/* Prompt */}
+            <div style={{ color: "#666666" }}>{padLine("Arrow keys to navigate, Enter to select, 0 to go back")}</div>
+          </>
+        )}
+
+        {phase === "name" && (
+          <>
+            {/* Show smaller version of selected class art */}
+            <div style={{ padding: "0 2ch", textAlign: "center" }}>
+              <div style={{ color: classColors[selectedClass?.id || "warrior"], fontSize: "1.5em", marginBottom: "1em" }}>
+                {selectedClass?.name?.toUpperCase()}
+              </div>
+            </div>
+
+            <div>{hLine}</div>
+
+            {/* Name input */}
+            <div style={{ padding: "1em 2ch" }}>
+              <div style={{ color: "#ffffff", marginBottom: "0.5em" }}>Enter your character's name:</div>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <span style={{ color: "#00ff00" }}>&gt; </span>
                 <input
                   type="text"
-                  placeholder="Enter a name for your character..."
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   maxLength={24}
-                  className="w-full bg-black border-2 border-green-700 text-green-400 px-3 py-2 font-mono focus:border-green-500 focus:ring-2 focus:ring-green-500/50 focus:outline-none"
+                  autoFocus
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "none",
+                    color: "#00ff00",
+                    fontFamily: "'Courier New', monospace",
+                    fontSize: "inherit",
+                    outline: "none",
+                    width: "40ch",
+                    caretColor: "#00ff00",
+                  }}
+                  placeholder="_"
                 />
-                <div className="text-xs text-green-600">
-                  {name.length}/24 characters
-                </div>
+                <span style={{ color: "#666666", animation: "blink 1s infinite" }}>█</span>
               </div>
-            </TerminalPanel>
-
-            {/* Class Selection */}
-            <div className="space-y-4">
-              <div className="text-center">
-                <pre className="text-green-600 text-xs leading-tight mb-2">
-                  {"═".repeat(40)}
-                </pre>
-                <h2 className="text-yellow-400 uppercase tracking-wider text-lg font-bold">
-                  Select Class
-                </h2>
-                <pre className="text-green-600 text-xs leading-tight mt-2">
-                  {"═".repeat(40)}
-                </pre>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {classes.map((classInfo) => (
-                  <ClassCard
-                    key={classInfo.id}
-                    classInfo={classInfo}
-                    selected={selectedClass === classInfo.id}
-                    onClick={() => classInfo.implemented && setSelectedClass(classInfo.id)}
-                    disabled={!classInfo.implemented}
-                  />
-                ))}
+              <div style={{ color: "#666666", fontSize: "0.8em", marginTop: "0.5em" }}>
+                {name.length}/24 characters (minimum 2)
               </div>
             </div>
 
-            {/* Selected Class Preview */}
-            {selectedClassInfo && (
-              <TerminalPanel variant="yellow">
-                <div className="text-center">
-                  <h3
-                    className="text-xl font-bold uppercase tracking-wider mb-3"
-                    style={{ color: classColors[selectedClassInfo.id] }}
-                  >
-                    {selectedClassInfo.name} Preview
-                  </h3>
-
-                  <div className="space-y-3 text-left">
-                    <p className="text-green-400 text-sm">
-                      {selectedClassInfo.description}
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-3 text-sm border-t border-yellow-800 pt-3">
-                      <div>
-                        <span className="text-yellow-600 uppercase text-xs">Resource:</span>{" "}
-                        <span className="text-yellow-400 capitalize">{selectedClassInfo.resourceType}</span>
-                      </div>
-                      <div>
-                        <span className="text-yellow-600 uppercase text-xs">Armor:</span>{" "}
-                        <span className="text-yellow-400 capitalize">{selectedClassInfo.armorType}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </TerminalPanel>
+            {error && (
+              <>
+                <div>{hLine}</div>
+                <div style={{ color: "#ff0000" }}>{padLine("ERROR: " + error)}</div>
+              </>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex justify-between gap-4 pt-4">
-              <TerminalButton
-                onClick={() => navigate("/")}
-                variant="secondary"
-                className="flex-1"
-              >
-                [←] Cancel
-              </TerminalButton>
-              <TerminalButton
-                onClick={() => handleSubmit({ preventDefault: () => {} } as React.FormEvent)}
-                variant="primary"
-                disabled={!name.trim() || !selectedClass || createCharacterMutation.isPending}
-                className="flex-1"
-              >
-                {createCharacterMutation.isPending ? "[...] Creating..." : "[✓] Create Character"}
-              </TerminalButton>
-            </div>
-          </div>
-        </form>
+            <div>{hLine}</div>
+            <div style={{ color: "#666666" }}>{padLine("Enter to continue, Escape to go back")}</div>
+          </>
+        )}
 
-        {/* ASCII Footer */}
-        <div className="mt-8 text-center">
-          <pre className="text-green-800 text-xs leading-tight">
-            {"═".repeat(60)}
-          </pre>
-        </div>
+        {phase === "confirm" && (
+          <>
+            {/* Final confirmation with full art */}
+            <div style={{ paddingLeft: "2ch", paddingRight: "2ch" }}>
+              {classArt && (
+                <AsciiArtDisplay
+                  art={classArt.art}
+                  colorRegions={classArt.colors as ColorRegion[]}
+                  centered
+                />
+              )}
+            </div>
+
+            <div>{hLine}</div>
+
+            {/* Character summary */}
+            <div style={{ padding: "1em 2ch", textAlign: "center" }}>
+              <div style={{ color: classColors[selectedClass?.id || "warrior"], fontSize: "1.2em" }}>
+                {name}
+              </div>
+              <div style={{ color: "#ffffff" }}>
+                Level 1 {selectedClass?.name}
+              </div>
+              <div style={{ marginTop: "1em" }}>
+                <span style={{ color: "#ffffff" }}>STR </span>
+                <span style={{ color: "#00ff00" }}>{stats?.str}</span>
+                <span style={{ color: "#666666" }}> / </span>
+                <span style={{ color: "#ffffff" }}>AGI </span>
+                <span style={{ color: "#00ff00" }}>{stats?.agi}</span>
+                <span style={{ color: "#666666" }}> / </span>
+                <span style={{ color: "#ffffff" }}>INT </span>
+                <span style={{ color: "#00ff00" }}>{stats?.int}</span>
+                <span style={{ color: "#666666" }}> / </span>
+                <span style={{ color: "#ffffff" }}>STA </span>
+                <span style={{ color: "#00ff00" }}>{stats?.sta}</span>
+                <span style={{ color: "#666666" }}> / </span>
+                <span style={{ color: "#ffffff" }}>SPI </span>
+                <span style={{ color: "#00ff00" }}>{stats?.spi}</span>
+              </div>
+            </div>
+
+            {error && (
+              <>
+                <div>{hLine}</div>
+                <div style={{ color: "#ff0000" }}>{padLine("ERROR: " + error)}</div>
+              </>
+            )}
+
+            <div>{hLine}</div>
+
+            {/* Confirm prompt */}
+            <div style={{ padding: "1em 2ch", textAlign: "center" }}>
+              <div
+                style={{ color: "#ffff00", cursor: "pointer" }}
+                onClick={handleCreate}
+              >
+                {">>> "} Press ENTER to begin your journey {"<<<"}
+              </div>
+              <div style={{ color: "#666666", marginTop: "0.5em" }}>
+                (Escape to go back)
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Bottom border */}
+        <div>{hLine}</div>
       </div>
+
+      <style>{`
+        @keyframes blink {
+          0%, 50% { opacity: 1; }
+          51%, 100% { opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 }
