@@ -70,11 +70,11 @@ export const characters = pgTable("characters", {
   currentResource: integer("current_resource").default(0).notNull(),
   maxResource: integer("max_resource").default(100).notNull(),
 
-  // Talent Points (stored as JSON arrays for each tree)
+  // Talent Points (stored as JSON objects mapping talentId -> ranks)
   talentPointsAvailable: integer("talent_points_available").default(0),
-  talentTree1Points: json("talent_tree1_points").$type<number[]>().default([]),
-  talentTree2Points: json("talent_tree2_points").$type<number[]>().default([]),
-  talentTree3Points: json("talent_tree3_points").$type<number[]>().default([]),
+  talentTree1Points: json("talent_tree1_points").$type<Record<string, number>>().default({}),
+  talentTree2Points: json("talent_tree2_points").$type<Record<string, number>>().default({}),
+  talentTree3Points: json("talent_tree3_points").$type<Record<string, number>>().default({}),
   respecCount: integer("respec_count").default(0),
 
   // Activity State
