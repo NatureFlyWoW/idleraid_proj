@@ -198,6 +198,14 @@ export const api = {
 
   // ============= QUESTS =============
   quests: {
+    get: {
+      method: 'GET' as const,
+      path: '/api/quests/:questId',
+      responses: {
+        200: z.custom<typeof quests.$inferSelect>(),
+        404: z.object({ message: z.string() }),
+      },
+    },
     available: {
       method: 'GET' as const,
       path: '/api/characters/:characterId/quests/available',

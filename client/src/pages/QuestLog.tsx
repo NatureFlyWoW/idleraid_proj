@@ -56,134 +56,7 @@ interface Quest {
   turnInNpc: string;
 }
 
-// Sample quest data (would come from API)
-const SAMPLE_QUESTS: Quest[] = [
-  {
-    id: "kobold_candles",
-    name: "Kobold Candles",
-    description:
-      "The Kobolds in Echo Ridge Mine have been stealing candles from Northshire. Venture into the mine and recover the stolen candles from the kobold workers.",
-    zone: "Elwynn Forest",
-    level: 3,
-    difficulty: "easy",
-    objectives: [
-      {
-        id: "obj1",
-        type: "collect",
-        description: "Collect Large Candles",
-        current: 6,
-        required: 8,
-        completed: false,
-      },
-      {
-        id: "obj2",
-        type: "kill",
-        description: "Kill Kobold Workers",
-        current: 10,
-        required: 10,
-        completed: true,
-      },
-    ],
-    rewards: [
-      { type: "xp", amount: 450 },
-      { type: "gold", amount: 75 },
-      { type: "item", itemName: "Kobold Mining Boots", itemRarity: "uncommon" },
-    ],
-    isMainQuest: false,
-    giver: "Marshal McBride",
-    turnInNpc: "Marshal McBride",
-  },
-  {
-    id: "wolves_at_gate",
-    name: "Wolves at the Gate",
-    description:
-      "The wolf population around Northshire has grown out of control. Thin their numbers before they threaten the abbey's livestock.",
-    zone: "Elwynn Forest",
-    level: 2,
-    difficulty: "easy",
-    objectives: [
-      {
-        id: "obj1",
-        type: "kill",
-        description: "Kill Young Wolves",
-        current: 8,
-        required: 8,
-        completed: true,
-      },
-    ],
-    rewards: [
-      { type: "xp", amount: 250 },
-      { type: "gold", amount: 35 },
-    ],
-    isMainQuest: false,
-    giver: "Deputy Willem",
-    turnInNpc: "Deputy Willem",
-  },
-  {
-    id: "defias_messenger",
-    name: "The Defias Messenger",
-    description:
-      "Intelligence reports indicate a Defias messenger will be passing through Elwynn Forest tonight. Intercept the messenger and retrieve any documents they carry. This could be the key to unraveling the Brotherhood's plans.",
-    zone: "Elwynn Forest",
-    level: 8,
-    difficulty: "hard",
-    objectives: [
-      {
-        id: "obj1",
-        type: "kill",
-        description: "Kill the Defias Messenger",
-        current: 0,
-        required: 1,
-        completed: false,
-      },
-      {
-        id: "obj2",
-        type: "collect",
-        description: "Recover Defias Documents",
-        current: 0,
-        required: 1,
-        completed: false,
-      },
-    ],
-    rewards: [
-      { type: "xp", amount: 900 },
-      { type: "gold", amount: 150 },
-      { type: "item", itemName: "Spy's Cloak", itemRarity: "rare" },
-      { type: "reputation", amount: 250 },
-    ],
-    isMainQuest: true,
-    giver: "Spymaster Mathias Shaw",
-    turnInNpc: "Spymaster Mathias Shaw",
-  },
-  {
-    id: "crystal_kelp",
-    name: "Crystal Kelp Collection",
-    description:
-      "The alchemists at the abbey need Crystal Kelp from the lake to brew healing potions. Dive into Crystal Lake and gather what they need.",
-    zone: "Elwynn Forest",
-    level: 5,
-    difficulty: "normal",
-    objectives: [
-      {
-        id: "obj1",
-        type: "collect",
-        description: "Collect Crystal Kelp",
-        current: 3,
-        required: 12,
-        completed: false,
-      },
-    ],
-    rewards: [
-      { type: "xp", amount: 350 },
-      { type: "gold", amount: 50 },
-      { type: "item", itemName: "Minor Healing Potion", itemRarity: "common" },
-      { type: "item", itemName: "Minor Healing Potion", itemRarity: "common" },
-    ],
-    isMainQuest: false,
-    giver: "Brother Neals",
-    turnInNpc: "Brother Neals",
-  },
-];
+// Note: Quest data is now fetched from the API via /api/quests/:questId
 
 const DIFFICULTY_CONFIG: Record<string, { color: string; label: string }> = {
   easy: { color: "#22c55e", label: "Easy" },
@@ -597,7 +470,7 @@ export default function QuestLog() {
     enabled: characterId > 0,
   });
 
-  // Fetch active quests from API
+  // Fetch active quests progress from API
   const { data: apiQuestProgress, isLoading: questsLoading, error: questsError } = useQuery({
     queryKey: ["activeQuests", characterId],
     queryFn: async () => {
@@ -610,31 +483,99 @@ export default function QuestLog() {
     enabled: characterId > 0,
   });
 
-  // Map API quest progress to local Quest interface
-  // Note: API returns CharacterQuestProgress[], we map to Quest[] with sample data as fallback
-  const quests =
-    apiQuestProgress && apiQuestProgress.length > 0
-      ? apiQuestProgress.map((progress: any) => {
-          // Find matching sample quest or create a basic one
-          const sampleQuest = SAMPLE_QUESTS.find(
-            (q) => q.id === String(progress.questId)
+  // Fetch quest definitions for each active quest
+  const { data: questDefinitions, isLoading: definitionsLoading } = useQuery({
+    queryKey: ["questDefinitions", apiQuestProgress?.map((p: any) => p.questId)],
+    queryFn: async () => {
+      if (!apiQuestProgress || apiQuestProgress.length === 0) return [];
+
+      // Fetch each quest definition from the API
+      const definitions = await Promise.all(
+        apiQuestProgress.map(async (progress: any) => {
+          const response = await fetch(
+            buildUrl(api.quests.get.path, { questId: progress.questId })
           );
-          if (sampleQuest) {
-            // Update objectives progress from API
+          if (!response.ok) return null;
+          return response.json();
+        })
+      );
+      return definitions.filter(Boolean);
+    },
+    enabled: apiQuestProgress && apiQuestProgress.length > 0,
+  });
+
+  // Map API quest progress + definitions to local Quest interface
+  const quests: Quest[] =
+    apiQuestProgress && apiQuestProgress.length > 0 && questDefinitions
+      ? apiQuestProgress.map((progress: any) => {
+          // Find matching quest definition from API
+          const questDef = questDefinitions.find(
+            (q: any) => q && q.id === progress.questId
+          );
+
+          if (questDef) {
+            // Parse objectives from quest definition
+            const objectives = (questDef.objectives || []) as Array<{
+              type?: string;
+              description?: string;
+              target?: string;
+              count?: number;
+            }>;
+
+            // Map objectives with current progress
+            const mappedObjectives: QuestObjective[] = objectives.map((obj, idx) => ({
+              id: `obj${idx}`,
+              type: (obj.type as ObjectiveType) || "kill",
+              description: obj.description || obj.target || "Complete objective",
+              current: progress.progress?.[idx] ?? 0,
+              required: obj.count ?? 1,
+              completed: (progress.progress?.[idx] ?? 0) >= (obj.count ?? 1),
+            }));
+
+            // Build rewards from quest definition
+            const rewards: QuestReward[] = [];
+            if (questDef.xpReward) {
+              rewards.push({ type: "xp", amount: questDef.xpReward });
+            }
+            if (questDef.goldReward) {
+              rewards.push({ type: "gold", amount: questDef.goldReward });
+            }
+            // Item rewards would need another query to get item names, so just note count
+            if (questDef.itemRewards && questDef.itemRewards.length > 0) {
+              for (const itemId of questDef.itemRewards) {
+                rewards.push({ type: "item", itemName: `Item #${itemId}`, itemRarity: "uncommon" });
+              }
+            }
+
+            // Determine difficulty from quest level relative to character
+            let difficulty: "easy" | "normal" | "hard" | "elite" = "normal";
+            if (character && questDef.level) {
+              const levelDiff = questDef.level - character.level;
+              if (levelDiff <= -3) difficulty = "easy";
+              else if (levelDiff >= 5) difficulty = "elite";
+              else if (levelDiff >= 3) difficulty = "hard";
+            }
+
             return {
-              ...sampleQuest,
-              objectives: sampleQuest.objectives.map((obj, idx) => ({
-                ...obj,
-                current: progress.progress?.[idx] ?? 0,
-                completed: progress.progress?.[idx] >= obj.required,
-              })),
+              id: String(progress.questId),
+              name: questDef.name || `Quest ${progress.questId}`,
+              description: questDef.description || "No description available.",
+              zone: questDef.zoneName || "Unknown",
+              level: questDef.level || 1,
+              difficulty,
+              objectives: mappedObjectives,
+              rewards,
+              isMainQuest: questDef.type === "main" || questDef.isMainQuest || false,
+              giver: questDef.giver || "Quest Giver",
+              turnInNpc: questDef.turnInNpc || questDef.giver || "Quest Giver",
             };
           }
-          // Fallback: create minimal quest object
+
+          // Fallback: create minimal quest object if definition not found
           return {
             id: String(progress.questId),
             name: `Quest ${progress.questId}`,
-            description: "Quest details loading...",
+            description: "Quest details could not be loaded.",
             zone: "Unknown",
             level: 1,
             difficulty: "normal" as const,
@@ -645,7 +586,7 @@ export default function QuestLog() {
             turnInNpc: "Quest Giver",
           };
         })
-      : SAMPLE_QUESTS; // Fallback to sample data
+      : [];
 
   const selectedQuest = quests.find((q: Quest) => q.id === selectedQuestId);
 
@@ -741,7 +682,7 @@ export default function QuestLog() {
     }
   };
 
-  if (characterLoading || questsLoading) {
+  if (characterLoading || questsLoading || definitionsLoading) {
     return (
       <div className="min-h-screen bg-black p-4">
         <div className="max-w-7xl mx-auto">

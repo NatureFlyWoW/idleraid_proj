@@ -286,10 +286,81 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       return;
     }
 
-    // TODO: Validate slot availability, level requirement
-    await storage.inventory.equipItem(itemId, 'mainHand'); // Placeholder slot
+    // Get the item being equipped
     const items = await storage.inventory.getCharacterItems(characterId);
-    res.json(items.find(i => i.id === itemId));
+    const itemToEquip = items.find(i => i.id === itemId);
+    if (!itemToEquip) {
+      res.status(404).json({ message: 'Item not found in inventory' });
+      return;
+    }
+
+    // Get item template to determine correct slot
+    const template = await storage.content.getItemTemplate(itemToEquip.templateId);
+    if (!template) {
+      res.status(400).json({ message: 'Item template not found' });
+      return;
+    }
+
+    // Get character to validate level requirement
+    const character = await storage.characters.getCharacterById(characterId);
+    if (!character) {
+      res.status(404).json({ message: 'Character not found' });
+      return;
+    }
+
+    // Validate character level meets item requirement
+    const requiredLevel = template.requiredLevel ?? 1;
+    if (character.level < requiredLevel) {
+      res.status(400).json({ message: `Requires level ${requiredLevel}` });
+      return;
+    }
+
+    // Determine the slot from the item template
+    const slot = template.slot;
+    if (!slot) {
+      res.status(400).json({ message: 'Item cannot be equipped' });
+      return;
+    }
+
+    // Handle ring/trinket slots (ring1/ring2, trinket1/trinket2)
+    // Some item templates may use generic 'ring' or 'trinket' slots
+    let targetSlot: string = slot;
+    const slotStr = slot as string;
+    if (slotStr === 'ring') {
+      // Check if ring1 is occupied, if so use ring2
+      const ring1 = items.find(i => i.isEquipped && i.equippedSlot === 'ring1');
+      const ring2 = items.find(i => i.isEquipped && i.equippedSlot === 'ring2');
+      if (!ring1) {
+        targetSlot = 'ring1';
+      } else if (!ring2) {
+        targetSlot = 'ring2';
+      } else {
+        targetSlot = 'ring1'; // Replace ring1 if both are occupied
+      }
+    } else if (slotStr === 'trinket') {
+      const trinket1 = items.find(i => i.isEquipped && i.equippedSlot === 'trinket1');
+      const trinket2 = items.find(i => i.isEquipped && i.equippedSlot === 'trinket2');
+      if (!trinket1) {
+        targetSlot = 'trinket1';
+      } else if (!trinket2) {
+        targetSlot = 'trinket2';
+      } else {
+        targetSlot = 'trinket1'; // Replace trinket1 if both are occupied
+      }
+    }
+
+    // Auto-unequip existing item in that slot
+    const existingEquipped = items.find(i => i.isEquipped && i.equippedSlot === targetSlot);
+    if (existingEquipped) {
+      await storage.inventory.unequipItem(existingEquipped.id);
+    }
+
+    // Equip the item to the determined slot
+    await storage.inventory.equipItem(itemId, targetSlot as any);
+
+    // Return updated item
+    const updatedItems = await storage.inventory.getCharacterItems(characterId);
+    res.json(updatedItems.find(i => i.id === itemId));
   });
 
   // Unequip item
@@ -337,6 +408,17 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   });
 
   // ============= QUEST ROUTES =============
+
+  // Get quest by ID
+  app.get(api.quests.get.path, async (req, res) => {
+    const questId = getIntParam(req.params.questId);
+    const quest = await storage.content.getQuestById(questId);
+    if (!quest) {
+      res.status(404).json({ message: 'Quest not found' });
+      return;
+    }
+    res.json(quest);
+  });
 
   // Get available quests for character
   app.get(api.quests.available.path, requireAuth, async (req, res) => {
@@ -740,7 +822,8 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         input.activityType,
         input.activityId ?? null,
         startedAt,
-        completesAt
+        completesAt,
+        input.difficulty
       );
 
       res.json({
@@ -804,19 +887,112 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       return;
     }
 
-    // TODO: Calculate actual rewards based on activity type, difficulty, character level
-    const xpGained = 100;
-    const goldGained = 10;
-    const itemsGained: any[] = [];
+    // Run actual combat based on activity type
+    const activityType = character.currentActivity;
+    const activityId = character.currentActivityId;
+    const difficulty = (character.currentDifficulty || 'normal') as 'safe' | 'normal' | 'challenging' | 'heroic';
 
-    // Update character
+    let xpGained = 0;
+    let goldGained = 0;
+    const itemsGained: Array<{ id: number; name: string; rarity: string }> = [];
+
+    try {
+      if (activityType === 'questing' && activityId) {
+        // Get the quest and run combat
+        const quest = await storage.content.getQuestById(activityId);
+        if (quest) {
+          const combatResult = await runQuestCombat(character, quest, difficulty);
+
+          if (combatResult.success && combatResult.rewards) {
+            xpGained = combatResult.rewards.xp;
+            goldGained = combatResult.rewards.gold;
+
+            // Add items to inventory
+            for (const templateId of combatResult.rewards.itemTemplateIds) {
+              const template = await storage.content.getItemTemplate(templateId);
+              if (template) {
+                const newItem = await storage.inventory.addItem({
+                  characterId,
+                  templateId,
+                  isEquipped: false,
+                  quantity: 1,
+                });
+                itemsGained.push({
+                  id: newItem.id,
+                  name: template.name,
+                  rarity: template.rarity,
+                });
+              }
+            }
+          } else {
+            // Combat failed - still give some XP but no full rewards
+            xpGained = Math.floor(quest.xpReward * 0.25);
+            goldGained = 0;
+          }
+        } else {
+          // Quest not found, give level-based fallback
+          xpGained = character.level * 45;
+          goldGained = character.level * 2;
+        }
+      } else if (activityType === 'dungeon' && activityId) {
+        // Get the dungeon and run combat
+        const dungeon = await storage.content.getDungeonById(activityId);
+        if (dungeon) {
+          const combatResult = await runDungeonCombat(character, dungeon, difficulty);
+
+          if (combatResult.success && combatResult.rewards) {
+            xpGained = combatResult.rewards.xp;
+            goldGained = combatResult.rewards.gold;
+
+            // Add items to inventory
+            for (const templateId of combatResult.rewards.itemTemplateIds) {
+              const template = await storage.content.getItemTemplate(templateId);
+              if (template) {
+                const newItem = await storage.inventory.addItem({
+                  characterId,
+                  templateId,
+                  isEquipped: false,
+                  quantity: 1,
+                });
+                itemsGained.push({
+                  id: newItem.id,
+                  name: template.name,
+                  rarity: template.rarity,
+                });
+              }
+            }
+          } else {
+            // Dungeon failed - partial XP
+            const avgLevel = Math.floor((dungeon.levelMin + dungeon.levelMax) / 2);
+            xpGained = avgLevel * 100;
+            goldGained = avgLevel * 5;
+          }
+        } else {
+          // Dungeon not found, give level-based fallback
+          xpGained = character.level * 100;
+          goldGained = character.level * 5;
+        }
+      } else {
+        // Default fallback rewards
+        xpGained = character.level * 45;
+        goldGained = character.level * 2;
+      }
+    } catch (combatError) {
+      // If combat service fails, use fallback rewards
+      console.error('Combat service error:', combatError);
+      xpGained = character.level * 45;
+      goldGained = character.level * 2;
+    }
+
+    // Update character experience and gold
     const newExperience = character.experience + xpGained;
     const newGold = character.gold + goldGained;
 
-    // TODO: Calculate if level up occurred
-    const leveledUp = false;
+    // Calculate if level up occurred
+    const levelInfo = getLevelFromXp(newExperience);
+    const leveledUp = levelInfo.level > character.level;
 
-    await storage.characters.updateCharacterExperience(characterId, newExperience, character.level);
+    await storage.characters.updateCharacterExperience(characterId, newExperience, levelInfo.level);
     await storage.characters.updateCharacterGold(characterId, newGold);
     await storage.characters.clearCharacterActivity(characterId);
 
@@ -825,6 +1001,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       goldGained,
       itemsGained,
       leveledUp,
+      newLevel: leveledUp ? levelInfo.level : undefined,
     });
   });
 

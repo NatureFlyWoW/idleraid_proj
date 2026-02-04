@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { api, buildUrl } from "@shared/routes";
@@ -401,6 +402,8 @@ export default function DungeonSelection() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const characterId = parseInt(params.id || "0");
+  const queryClient = useQueryClient();
+  const [selectedDifficulty] = useState<'safe' | 'normal' | 'challenging' | 'heroic'>('normal');
 
   const { data: character, isLoading: characterLoading, error: characterError } = useQuery({
     queryKey: ["character", characterId],
@@ -424,9 +427,40 @@ export default function DungeonSelection() {
     },
   });
 
+  // Start dungeon activity mutation
+  const startDungeonMutation = useMutation({
+    mutationFn: async ({ dungeonId, difficulty }: { dungeonId: number; difficulty: string }) => {
+      const response = await fetch(
+        buildUrl(api.activities.start.path, { characterId }),
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            activityType: "dungeon",
+            activityId: dungeonId,
+            difficulty,
+          }),
+        }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to start dungeon");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["character", characterId] });
+      navigate(`/game/${characterId}`);
+    },
+    onError: (error: Error) => {
+      alert(error.message);
+    },
+  });
+
   // Use API dungeons if available, fall back to sample data
   const dungeons = apiDungeons && apiDungeons.length > 0 ? apiDungeons.map((d: any) => ({
     id: d.id.toString(),
+    numericId: d.id, // Keep numeric ID for activity start
     name: d.name,
     shortName: d.shortName || d.name.substring(0, 2).toUpperCase(),
     levelRange: [d.levelMin, d.levelMax] as [number, number],
@@ -444,10 +478,17 @@ export default function DungeonSelection() {
     },
   })) : DUNGEONS;
 
-  const handleEnterDungeon = (dungeonId: string) => {
-    console.log(`Entering dungeon: ${dungeonId}`);
-    // Would navigate to dungeon instance or start dungeon
-    navigate(`/game/${characterId}`);
+  const handleEnterDungeon = (dungeonId: string, numericId?: number) => {
+    // Start dungeon activity
+    const id = numericId ?? parseInt(dungeonId);
+    if (!isNaN(id)) {
+      startDungeonMutation.mutate({
+        dungeonId: id,
+        difficulty: selectedDifficulty,
+      });
+    } else {
+      navigate(`/game/${characterId}`);
+    }
   };
 
   const isLoading = characterLoading || dungeonsLoading;
@@ -572,12 +613,12 @@ export default function DungeonSelection() {
               ═══ AVAILABLE DUNGEONS ═══
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {unlockedDungeons.map((dungeon: DungeonData) => (
+              {unlockedDungeons.map((dungeon: any) => (
                 <DungeonCard
                   key={dungeon.id}
                   dungeon={dungeon}
                   characterLevel={character.level}
-                  onEnter={() => handleEnterDungeon(dungeon.id)}
+                  onEnter={() => handleEnterDungeon(dungeon.id, dungeon.numericId)}
                 />
               ))}
             </div>

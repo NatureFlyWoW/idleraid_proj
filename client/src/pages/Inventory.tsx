@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { api, buildUrl } from "@shared/routes";
@@ -237,10 +237,12 @@ function EquipmentPanel({
   equippedItems,
   onHoverItem,
   onLeaveItem,
+  onUnequipItem,
 }: {
   equippedItems: Record<string, Item | null>;
   onHoverItem: (item: Item, e: React.MouseEvent) => void;
   onLeaveItem: () => void;
+  onUnequipItem: (item: Item) => void;
 }) {
   const slots = [
     ["head", "neck", "shoulders"],
@@ -255,6 +257,7 @@ function EquipmentPanel({
       <div className="text-green-400 font-mono text-xs mb-3 text-center uppercase">
         ═══ Equipped ═══
       </div>
+      <p className="text-green-600 text-[10px] font-mono text-center mb-2">Click to unequip</p>
       <div className="space-y-2">
         {slots.map((row, rowIdx) => (
           <div key={rowIdx} className="flex justify-center gap-2">
@@ -266,6 +269,7 @@ function EquipmentPanel({
                   item={item}
                   onHover={(e) => item && onHoverItem(item, e)}
                   onLeave={onLeaveItem}
+                  onClick={item ? () => onUnequipItem(item) : undefined}
                 />
               );
             })}
@@ -285,11 +289,13 @@ function BagGrid({
   bagSize,
   onHoverItem,
   onLeaveItem,
+  onEquipItem,
 }: {
   items: Item[];
   bagSize: number;
   onHoverItem: (item: Item, e: React.MouseEvent) => void;
   onLeaveItem: () => void;
+  onEquipItem: (item: Item) => void;
 }) {
   const slots = Array(bagSize).fill(null);
 
@@ -305,6 +311,7 @@ function BagGrid({
       <div className="text-green-400 font-mono text-xs mb-3 text-center uppercase">
         ═══ Bag ({items.length}/{bagSize}) ═══
       </div>
+      <p className="text-green-600 text-[10px] font-mono text-center mb-2">Click to equip</p>
       <div className="grid grid-cols-6 gap-1">
         {slots.map((item, idx) => (
           <InventorySlot
@@ -312,6 +319,7 @@ function BagGrid({
             item={item}
             onHover={(e) => item && onHoverItem(item, e)}
             onLeave={onLeaveItem}
+            onClick={item ? () => onEquipItem(item) : undefined}
           />
         ))}
       </div>
@@ -327,9 +335,11 @@ export default function Inventory() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const characterId = parseInt(params.id || "0");
+  const queryClient = useQueryClient();
 
   const [hoveredItem, setHoveredItem] = useState<Item | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Fetch character data
   const { data: character, isLoading: charLoading, error: charError } = useQuery({
@@ -356,6 +366,62 @@ export default function Inventory() {
     },
     enabled: characterId > 0,
   });
+
+  // Equip item mutation
+  const equipMutation = useMutation({
+    mutationFn: async (itemId: number) => {
+      const response = await fetch(
+        buildUrl(api.inventory.equip.path, { characterId, itemId }),
+        { method: "POST" }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to equip item");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setErrorMessage(null);
+      queryClient.invalidateQueries({ queryKey: ["inventory", characterId] });
+    },
+    onError: (error: Error) => {
+      setErrorMessage(error.message);
+      setTimeout(() => setErrorMessage(null), 3000);
+    },
+  });
+
+  // Unequip item mutation
+  const unequipMutation = useMutation({
+    mutationFn: async (itemId: number) => {
+      const response = await fetch(
+        buildUrl(api.inventory.unequip.path, { characterId, itemId }),
+        { method: "POST" }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to unequip item");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setErrorMessage(null);
+      queryClient.invalidateQueries({ queryKey: ["inventory", characterId] });
+    },
+    onError: (error: Error) => {
+      setErrorMessage(error.message);
+      setTimeout(() => setErrorMessage(null), 3000);
+    },
+  });
+
+  // Handler for equipping bag items
+  const handleEquipItem = (item: Item) => {
+    equipMutation.mutate(item.id);
+  };
+
+  // Handler for unequipping equipped items
+  const handleUnequipItem = (item: Item) => {
+    unequipMutation.mutate(item.id);
+  };
 
   // Process inventory data into bag items and equipped items
   const bagItems: Item[] = inventoryData?.filter((item: any) => !item.isEquipped).map((item: any) => ({
@@ -542,6 +608,15 @@ export default function Inventory() {
           </div>
         </TerminalPanel>
 
+        {/* Error Message */}
+        {errorMessage && (
+          <TerminalPanel variant="red" className="mb-4">
+            <div className="text-center text-red-400 font-mono text-sm">
+              {errorMessage}
+            </div>
+          </TerminalPanel>
+        )}
+
         {/* Main Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Equipment Panel */}
@@ -549,6 +624,7 @@ export default function Inventory() {
             equippedItems={displayEquippedItems}
             onHoverItem={handleHoverItem}
             onLeaveItem={handleLeaveItem}
+            onUnequipItem={handleUnequipItem}
           />
 
           {/* Bag Grid */}
@@ -557,6 +633,7 @@ export default function Inventory() {
             bagSize={24}
             onHoverItem={handleHoverItem}
             onLeaveItem={handleLeaveItem}
+            onEquipItem={handleEquipItem}
           />
         </div>
 

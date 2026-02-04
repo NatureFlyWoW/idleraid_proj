@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { api, buildUrl } from "@shared/routes";
 import { cn } from "@/lib/utils";
@@ -205,8 +205,85 @@ function CharacterPanel({ character }: { character: Character }) {
   );
 }
 
-function ActivityPanel({ character }: { character: Character }) {
-  if (!character.currentActivity) {
+function ActivityPanel({
+  character,
+  characterId,
+  onCollectSuccess,
+}: {
+  character: Character;
+  characterId: number;
+  onCollectSuccess?: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
+  const [rewardNotification, setRewardNotification] = useState<{
+    xp: number;
+    gold: number;
+    items: { name: string; rarity: string }[];
+    leveledUp: boolean;
+    newLevel?: number;
+  } | null>(null);
+
+  // Stop activity mutation
+  const stopActivityMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(
+        buildUrl(api.activities.stop.path, { characterId }),
+        { method: "POST" }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to stop activity");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["character", characterId] });
+    },
+  });
+
+  // Collect rewards mutation
+  const collectMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(
+        buildUrl(api.activities.collect.path, { characterId }),
+        { method: "POST" }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to collect rewards");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Show reward notification
+      setRewardNotification({
+        xp: data.xpGained,
+        gold: data.goldGained,
+        items: data.itemsGained || [],
+        leveledUp: data.leveledUp,
+        newLevel: data.newLevel,
+      });
+      // Refresh character data
+      queryClient.invalidateQueries({ queryKey: ["character", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["inventory", characterId] });
+      onCollectSuccess?.();
+    },
+  });
+
+  // Calculate progress
+  let progressPercent = 0;
+  let isComplete = false;
+  if (character.activityStartedAt && character.activityCompletesAt) {
+    const now = Date.now();
+    const start = new Date(character.activityStartedAt).getTime();
+    const end = new Date(character.activityCompletesAt).getTime();
+    progressPercent = Math.min(100, ((now - start) / (end - start)) * 100);
+    isComplete = now >= end;
+  }
+
+  // Idle state - show navigation buttons
+  if (!character.currentActivity || character.currentActivity === 'idle') {
     return (
       <TerminalPanel variant="cyan">
         <div className="text-center">
@@ -215,51 +292,126 @@ function ActivityPanel({ character }: { character: Character }) {
             ║     ACTIVITY       ║{"\n"}
             ╚════════════════════╝
           </pre>
-          <p className="text-cyan-500 mb-2">Character is idle.</p>
-          <p className="text-cyan-700 text-xs">
-            Select an activity from the menu below.
-          </p>
+          <p className="text-cyan-500 mb-3">Character is idle.</p>
+          <div className="space-y-2">
+            <TerminalButton
+              variant="primary"
+              className="w-full text-xs"
+              onClick={() => navigate(`/character/${characterId}/zones`)}
+            >
+              [▶] Start Questing
+            </TerminalButton>
+            <TerminalButton
+              variant="secondary"
+              className="w-full text-xs"
+              onClick={() => navigate(`/character/${characterId}/dungeons`)}
+            >
+              [⌂] Enter Dungeon
+            </TerminalButton>
+          </div>
         </div>
       </TerminalPanel>
     );
   }
 
-  // Calculate progress
-  let progressPercent = 0;
-  if (character.activityStartedAt && character.activityCompletesAt) {
-    const now = Date.now();
-    const start = new Date(character.activityStartedAt).getTime();
-    const end = new Date(character.activityCompletesAt).getTime();
-    progressPercent = Math.min(100, ((now - start) / (end - start)) * 100);
-  }
-
   return (
-    <TerminalPanel variant="yellow">
-      <div className="text-center">
-        <pre className="text-yellow-400 text-xs mb-2">
-          ╔════════════════════╗{"\n"}
-          ║  CURRENT ACTIVITY  ║{"\n"}
-          ╚════════════════════╝
-        </pre>
-        <p className="text-yellow-400 uppercase font-bold mb-2">
-          {character.currentActivity}
-        </p>
-        <div className="mb-2">
-          <ASCIIBar
-            current={progressPercent}
-            max={100}
-            width={20}
-            color="text-yellow-400"
-          />
+    <>
+      <TerminalPanel variant="yellow">
+        <div className="text-center">
+          <pre className="text-yellow-400 text-xs mb-2">
+            ╔════════════════════╗{"\n"}
+            ║  CURRENT ACTIVITY  ║{"\n"}
+            ╚════════════════════╝
+          </pre>
+          <p className="text-yellow-400 uppercase font-bold mb-2">
+            {character.currentActivity}
+          </p>
+          <div className="mb-2">
+            <ASCIIBar
+              current={progressPercent}
+              max={100}
+              width={20}
+              color={isComplete ? "text-green-400" : "text-yellow-400"}
+            />
+          </div>
+          <p className={cn("text-xs mb-3", isComplete ? "text-green-400" : "text-yellow-600")}>
+            {isComplete ? "Complete! Collect rewards" : `${Math.floor(progressPercent)}% complete`}
+          </p>
+          <div className="space-y-2">
+            {isComplete ? (
+              <TerminalButton
+                variant="primary"
+                className="w-full text-xs"
+                onClick={() => collectMutation.mutate()}
+                disabled={collectMutation.isPending}
+              >
+                {collectMutation.isPending ? "[...] Collecting..." : "[✓] Collect Rewards"}
+              </TerminalButton>
+            ) : (
+              <TerminalButton
+                variant="danger"
+                className="w-full text-xs"
+                onClick={() => stopActivityMutation.mutate()}
+                disabled={stopActivityMutation.isPending}
+              >
+                {stopActivityMutation.isPending ? "[...] Stopping..." : "[X] Stop Activity"}
+              </TerminalButton>
+            )}
+          </div>
         </div>
-        <p className="text-yellow-600 text-xs mb-3">
-          {Math.floor(progressPercent)}% complete
-        </p>
-        <TerminalButton variant="danger" className="w-full text-xs">
-          [X] Stop Activity
-        </TerminalButton>
-      </div>
-    </TerminalPanel>
+      </TerminalPanel>
+
+      {/* Reward Notification Modal */}
+      {rewardNotification && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-stone-900 border-2 border-green-700 p-6 max-w-md w-full mx-4">
+            <div className="text-center">
+              <pre className="font-mono text-xs text-green-400 leading-tight mb-4">
+{`╔══════════════════════════════════════╗
+║         REWARDS COLLECTED!           ║
+╚══════════════════════════════════════╝`}
+              </pre>
+
+              {rewardNotification.leveledUp && (
+                <div className="mb-4 p-3 bg-yellow-900/30 border border-yellow-700">
+                  <div className="text-yellow-400 font-mono text-lg">
+                    ★ LEVEL UP! ★
+                  </div>
+                  <div className="text-yellow-300 font-mono text-sm">
+                    You are now level {rewardNotification.newLevel}!
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2 mb-6">
+                {rewardNotification.xp > 0 && (
+                  <div className="text-purple-400 font-mono">
+                    +{rewardNotification.xp} XP
+                  </div>
+                )}
+                {rewardNotification.gold > 0 && (
+                  <div className="text-yellow-400 font-mono">
+                    +{rewardNotification.gold} Gold
+                  </div>
+                )}
+                {rewardNotification.items.map((item, idx) => (
+                  <div key={idx} className="text-green-400 font-mono text-sm">
+                    + {item.name}
+                  </div>
+                ))}
+              </div>
+
+              <TerminalButton
+                variant="primary"
+                onClick={() => setRewardNotification(null)}
+              >
+                [ Continue ]
+              </TerminalButton>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -555,7 +707,7 @@ export default function Game() {
           {/* Left Sidebar - Character Info */}
           <div className="space-y-4">
             <CharacterPanel character={character} />
-            <ActivityPanel character={character} />
+            <ActivityPanel character={character} characterId={characterId} />
           </div>
 
           {/* Main Content Area */}

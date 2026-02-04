@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { api, buildUrl } from "@shared/routes";
@@ -258,6 +259,8 @@ export default function ZoneSelection() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const characterId = parseInt(params.id || "0");
+  const queryClient = useQueryClient();
+  const [selectedDifficulty, setSelectedDifficulty] = useState<'safe' | 'normal' | 'challenging' | 'heroic'>('normal');
 
   const { data: character, isLoading: charLoading, error: charError } = useQuery({
     queryKey: ["character", characterId],
@@ -281,24 +284,77 @@ export default function ZoneSelection() {
     },
   });
 
+  // Fetch available quests for the character
+  const { data: availableQuests } = useQuery({
+    queryKey: ["availableQuests", characterId],
+    queryFn: async () => {
+      const response = await fetch(
+        buildUrl(api.quests.available.path, { characterId })
+      );
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: characterId > 0,
+  });
+
+  // Start questing activity mutation
+  const startActivityMutation = useMutation({
+    mutationFn: async ({ questId, difficulty }: { questId: number; difficulty: string }) => {
+      const response = await fetch(
+        buildUrl(api.activities.start.path, { characterId }),
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            activityType: "questing",
+            activityId: questId,
+            difficulty,
+          }),
+        }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to start activity");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["character", characterId] });
+      navigate(`/game/${characterId}`);
+    },
+    onError: (error: Error) => {
+      alert(error.message);
+    },
+  });
+
   // Map API zones to our format, fallback to mock data
   const zones = apiZones?.length > 0 ? apiZones.map((z: any) => ({
     id: z.id?.toString() || z.name?.toLowerCase().replace(/\s/g, '_'),
     name: z.name,
-    levelRange: [z.minLevel || 1, z.maxLevel || 10] as [number, number],
+    levelRange: [z.minLevel || z.levelMin || 1, z.maxLevel || z.levelMax || 10] as [number, number],
     description: z.description || "An adventurous zone awaits.",
     questCount: z.questCount || 10,
     difficulty: z.difficulty || "normal",
     enemyTypes: z.enemyTypes || ["Various Creatures"],
     rewards: z.rewards || ["Experience", "Gold"],
     completionReward: z.completionReward,
+    zoneId: z.id, // Keep numeric ID for quest lookup
   })) : ZONES;
 
-  const handleTravel = (zoneId: string) => {
-    // Would navigate to zone or start activity
-    console.log(`Traveling to zone: ${zoneId}`);
-    // For now, just go back to game
-    navigate(`/game/${characterId}`);
+  const handleTravel = (zoneId: string, numericZoneId?: number) => {
+    // Find a quest in this zone to start
+    const zoneQuests = availableQuests?.filter((q: any) => q.zoneId === numericZoneId) || [];
+
+    if (zoneQuests.length > 0) {
+      // Start activity with the first available quest from the zone
+      startActivityMutation.mutate({
+        questId: zoneQuests[0].id,
+        difficulty: selectedDifficulty,
+      });
+    } else {
+      // No quests available, just navigate
+      navigate(`/game/${characterId}`);
+    }
   };
 
   const isLoading = charLoading || zonesLoading;
@@ -413,12 +469,12 @@ export default function ZoneSelection() {
               ═══ Available Zones ═══
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {unlockedZones.map((zone: typeof ZONES[0]) => (
+              {unlockedZones.map((zone: any) => (
                 <ZoneCard
                   key={zone.id}
                   zone={zone}
                   characterLevel={character.level}
-                  onTravel={() => handleTravel(zone.id)}
+                  onTravel={() => handleTravel(zone.id, zone.zoneId)}
                 />
               ))}
             </div>

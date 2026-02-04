@@ -122,7 +122,8 @@ export interface ICharacterStorage {
     activityType: string | null,
     activityId: number | null,
     activityStartedAt: Date | null,
-    activityCompletesAt: Date | null
+    activityCompletesAt: Date | null,
+    difficulty?: string | null
   ): Promise<void>;
   clearCharacterActivity(id: number): Promise<void>;
 }
@@ -178,7 +179,8 @@ class CharacterStorage implements ICharacterStorage {
     activityType: string | null,
     activityId: number | null,
     activityStartedAt: Date | null,
-    activityCompletesAt: Date | null
+    activityCompletesAt: Date | null,
+    difficulty?: string | null
   ): Promise<void> {
     await db
       .update(characters)
@@ -187,6 +189,7 @@ class CharacterStorage implements ICharacterStorage {
         currentActivityId: activityId,
         activityStartedAt,
         activityCompletesAt,
+        currentDifficulty: (difficulty || 'normal') as any,
         lastPlayedAt: new Date(),
       })
       .where(eq(characters.id, id));
