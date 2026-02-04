@@ -20,7 +20,7 @@ import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen" style={{ backgroundColor: "#000000" }}>
       <Switch>
         <Route path="/" component={CharacterSelect} />
         <Route path="/create" component={CharacterCreate} />

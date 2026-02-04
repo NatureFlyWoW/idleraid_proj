@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import {
@@ -13,18 +14,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { api, buildUrl } from "@shared/routes";
-import { cn } from "@/lib/utils";
-import { ASCIIHeader, TerminalPanel, TerminalButton } from "@/components/game/TerminalPanel";
+import { AsciiArtDisplay } from "@/components/game/AsciiArtDisplay";
+import { TITLE_LOGO_ART, TITLE_LOGO_COLORS } from "@/lib/asciiArt";
 
 // Class colors matching WoW palette
 const classColors: Record<string, string> = {
-  warrior: "text-[#C79C6E]",
-  paladin: "text-[#F58CBA]",
-  hunter: "text-[#ABD473]",
-  rogue: "text-[#FFF569]",
-  priest: "text-[#FFFFFF]",
-  mage: "text-[#69CCF0]",
-  druid: "text-[#FF7D0A]",
+  warrior: "#C79C6E",
+  paladin: "#F58CBA",
+  hunter: "#ABD473",
+  rogue: "#FFF569",
+  priest: "#FFFFFF",
+  mage: "#69CCF0",
+  druid: "#FF7D0A",
 };
 
 interface Character {
@@ -39,133 +40,13 @@ interface Character {
   currentActivity: string | null;
 }
 
-function CharacterCard({
-  character,
-  onPlay,
-  onDelete,
-}: {
-  character: Character;
-  onPlay: () => void;
-  onDelete: () => void;
-}) {
-  const xpPercent = (character.experience % 1000) / 10;
-  const healthPercent = (character.currentHealth / character.maxHealth) * 100;
-
-  // Generate ASCII health bar
-  const barLength = 20;
-  const filledBars = Math.floor((healthPercent / 100) * barLength);
-  const healthBar = "█".repeat(filledBars) + "░".repeat(barLength - filledBars);
-
-  const xpBars = Math.floor((xpPercent / 100) * barLength);
-  const xpBar = "█".repeat(xpBars) + "░".repeat(barLength - xpBars);
-
-  return (
-    <TerminalPanel variant="green" className="hover:border-green-500 transition-all">
-      <div className="space-y-3">
-        {/* Character Name & Level */}
-        <div className="flex items-center justify-between border-b border-green-800 pb-2">
-          <h3 className={cn("text-lg font-bold uppercase tracking-wider", classColors[character.characterClass])}>
-            {character.name}
-          </h3>
-          <span className="text-yellow-400 text-sm font-bold px-2 py-1 border border-yellow-600">
-            LVL {character.level}
-          </span>
-        </div>
-
-        {/* Class */}
-        <div className="text-xs text-green-500 uppercase tracking-wider">
-          {character.characterClass}
-        </div>
-
-        {/* Health Bar */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs">
-            <span className="text-red-400">HP</span>
-            <span className="text-green-300">
-              {character.currentHealth}/{character.maxHealth}
-            </span>
-          </div>
-          <pre className="text-red-500 text-xs leading-none">{healthBar}</pre>
-        </div>
-
-        {/* XP Bar */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs">
-            <span className="text-purple-400">XP</span>
-            <span className="text-green-300">{Math.floor(xpPercent)}%</span>
-          </div>
-          <pre className="text-purple-500 text-xs leading-none">{xpBar}</pre>
-        </div>
-
-        {/* Gold */}
-        <div className="flex justify-between text-xs border-t border-green-800 pt-2">
-          <span className="text-yellow-600">GOLD</span>
-          <span className="text-yellow-400 font-bold">{character.gold.toLocaleString()}</span>
-        </div>
-
-        {/* Activity Status */}
-        {character.currentActivity && (
-          <div className="text-xs text-cyan-400 border border-cyan-700 p-2 bg-cyan-950/20">
-            <span className="animate-pulse">▶</span> {character.currentActivity.toUpperCase()}
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-2 pt-2">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <TerminalButton variant="danger" className="flex-1 text-xs py-1">
-                [X] DEL
-              </TerminalButton>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="bg-black border-2 border-red-600 font-mono">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-red-400 uppercase">
-                  Delete {character.name}?
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-green-400 font-mono">
-                  This action cannot be undone. This will permanently delete your character and all associated progress.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="terminal-button">Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={onDelete}
-                  className="bg-transparent border-2 border-red-600 text-red-400 hover:bg-red-600/20"
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-
-          <TerminalButton onClick={onPlay} className="flex-1 text-xs py-1">
-            [▶] PLAY
-          </TerminalButton>
-        </div>
-      </div>
-    </TerminalPanel>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <TerminalPanel variant="green">
-      <div className="space-y-3 animate-pulse">
-        <div className="h-6 bg-green-900/30 w-3/4"></div>
-        <div className="h-4 bg-green-900/30 w-1/2"></div>
-        <div className="h-3 bg-green-900/30 w-full"></div>
-        <div className="h-3 bg-green-900/30 w-full"></div>
-        <div className="h-8 bg-green-900/30 w-full"></div>
-      </div>
-    </TerminalPanel>
-  );
-}
-
 export default function CharacterSelect() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+  const [showTitle, setShowTitle] = useState(true);
 
   const { data: characters, isLoading } = useQuery({
     queryKey: ["characters"],
@@ -193,95 +74,269 @@ export default function CharacterSelect() {
     },
   });
 
-  const handlePlay = (characterId: number) => {
-    navigate(`/game/${characterId}`);
+  const maxCharacters = 10;
+  const charCount = characters?.length ?? 0;
+  const canCreateMore = charCount < maxCharacters;
+
+  // Build menu items: characters + create new (if possible)
+  const menuItems = [
+    ...(characters?.map(c => ({ type: "character" as const, data: c })) || []),
+    ...(canCreateMore ? [{ type: "create" as const, data: null }] : []),
+  ];
+
+  // Keyboard navigation
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (showDeleteConfirm !== null) return; // Don't navigate during delete confirmation
+
+    if (showTitle) {
+      // Any key dismisses title animation
+      if (e.key === "Enter" || e.key === " " || e.key === "Escape") {
+        e.preventDefault();
+        setShowTitle(false);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case "ArrowUp":
+        e.preventDefault();
+        setSelectedIndex(prev => (prev > 0 ? prev - 1 : menuItems.length - 1));
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        setSelectedIndex(prev => (prev < menuItems.length - 1 ? prev + 1 : 0));
+        break;
+      case "Enter":
+        e.preventDefault();
+        const selected = menuItems[selectedIndex];
+        if (selected?.type === "character") {
+          navigate(`/game/${selected.data.id}`);
+        } else if (selected?.type === "create") {
+          navigate("/create");
+        }
+        break;
+      case "Delete":
+      case "Backspace":
+        e.preventDefault();
+        const item = menuItems[selectedIndex];
+        if (item?.type === "character") {
+          setShowDeleteConfirm(item.data.id);
+        }
+        break;
+      default:
+        // Number key selection
+        const num = parseInt(e.key, 10);
+        if (num >= 1 && num <= menuItems.length) {
+          setSelectedIndex(num - 1);
+        }
+        break;
+    }
+  }, [showTitle, showDeleteConfirm, selectedIndex, menuItems, navigate]);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
+  // Auto-dismiss title after animation
+  useEffect(() => {
+    if (showTitle) {
+      const timer = setTimeout(() => setShowTitle(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showTitle]);
+
+  const termWidth = 80;
+  const hLine = "+" + "-".repeat(termWidth - 2) + "+";
+
+  const padLine = (content: string): string => {
+    const innerWidth = termWidth - 4;
+    const trimmed = content.slice(0, innerWidth);
+    const padding = " ".repeat(Math.max(0, innerWidth - trimmed.length));
+    return "| " + trimmed + padding + " |";
   };
 
-  const maxCharacters = 10;
-  const canCreateMore = (characters?.length ?? 0) < maxCharacters;
+  // Render ASCII health bar
+  const renderBar = (current: number, max: number, width: number = 15): string => {
+    const percent = max > 0 ? current / max : 0;
+    const filled = Math.round(percent * width);
+    return "[" + "█".repeat(filled) + "░".repeat(width - filled) + "]";
+  };
 
   return (
-    <div className="min-h-screen bg-black p-4">
-      <div className="max-w-6xl mx-auto">
-        {/* ASCII Header */}
-        <ASCIIHeader variant="double">Idle Raiders</ASCIIHeader>
+    <div
+      className="min-h-screen p-4 flex flex-col items-center justify-center"
+      style={{
+        backgroundColor: "#000000",
+        fontFamily: "'Courier New', monospace",
+        color: "#00ff00",
+      }}
+    >
+      {/* Title Screen with Logo */}
+      <div style={{ marginBottom: "2em" }}>
+        <AsciiArtDisplay
+          art={TITLE_LOGO_ART}
+          colorRegions={TITLE_LOGO_COLORS}
+          animate={showTitle}
+          animationDelay={40}
+          centered
+        />
+      </div>
 
-        <p className="text-center text-green-500 mb-8 font-mono text-sm uppercase tracking-wide">
-          &gt;&gt; Select a character or create a new one to begin your adventure &lt;&lt;
-        </p>
+      {/* Main Content */}
+      <div
+        style={{
+          width: `${termWidth}ch`,
+          lineHeight: 1.15,
+          whiteSpace: "pre",
+        }}
+      >
+        {/* Top border */}
+        <div>{hLine}</div>
+        <div style={{ color: "#ffffff" }}>{padLine("Character Selection")}</div>
+        <div>{hLine}</div>
 
-        {/* Character Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Existing Characters */}
-          {isLoading ? (
-            <>
-              <LoadingSkeleton />
-              <LoadingSkeleton />
-            </>
-          ) : (
-            characters?.map((character) => (
-              <CharacterCard
-                key={character.id}
-                character={character}
-                onPlay={() => handlePlay(character.id)}
-                onDelete={() => deleteCharacterMutation.mutate(character.id)}
-              />
-            ))
-          )}
+        {/* Loading state */}
+        {isLoading && (
+          <>
+            <div>{padLine("")}</div>
+            <div style={{ color: "#666666" }}>{padLine("Loading characters...")}</div>
+            <div>{padLine("")}</div>
+          </>
+        )}
 
-          {/* Create New Character Card */}
-          {canCreateMore && (
-            <div
-              onClick={() => navigate("/create")}
-              className="cursor-pointer"
-            >
-              <TerminalPanel
-                variant="yellow"
-                className="hover:border-yellow-500 transition-all hover:shadow-[0_0_15px_rgba(202,138,4,0.3)]"
-              >
-                <div className="flex flex-col items-center justify-center h-full min-h-[280px] text-yellow-400">
-                  <pre className="text-5xl mb-4">╋</pre>
-                  <p className="text-lg font-bold uppercase tracking-wider mb-2">
-                    Create New Character
-                  </p>
-                  <p className="text-xs text-yellow-600">
-                    {characters?.length ?? 0}/{maxCharacters} slots used
-                  </p>
+        {/* Empty state */}
+        {!isLoading && charCount === 0 && (
+          <>
+            <div>{padLine("")}</div>
+            <div style={{ color: "#00ffff", textAlign: "center" }}>{padLine("No characters yet!")}</div>
+            <div style={{ color: "#666666" }}>{padLine("Create your first character to begin.")}</div>
+            <div>{padLine("")}</div>
+          </>
+        )}
+
+        {/* Character List */}
+        {!isLoading && characters && characters.length > 0 && (
+          <div style={{ padding: "0.5em 2ch" }}>
+            {characters.map((char, idx) => {
+              const isSelected = idx === selectedIndex;
+              const prefix = isSelected ? ">" : " ";
+              const classColor = classColors[char.characterClass] || "#00ff00";
+
+              return (
+                <div
+                  key={char.id}
+                  style={{
+                    marginBottom: "0.5em",
+                    cursor: "pointer",
+                    padding: "0.25em 0",
+                    borderLeft: isSelected ? "2px solid #ffff00" : "2px solid transparent",
+                    paddingLeft: "0.5ch",
+                  }}
+                  onClick={() => setSelectedIndex(idx)}
+                  onDoubleClick={() => navigate(`/game/${char.id}`)}
+                >
+                  <div style={{ color: isSelected ? "#ffff00" : "#00ff00" }}>
+                    {prefix} {idx + 1}. <span style={{ color: classColor }}>{char.name}</span>
+                    <span style={{ color: "#666666" }}> - </span>
+                    <span style={{ color: "#ffffff" }}>Lv.{char.level} {char.characterClass}</span>
+                  </div>
+                  {isSelected && (
+                    <div style={{ marginLeft: "4ch", color: "#666666", fontSize: "0.9em" }}>
+                      <span style={{ color: "#ff6666" }}>HP {renderBar(char.currentHealth, char.maxHealth, 10)}</span>
+                      <span style={{ marginLeft: "1ch", color: "#ffff00" }}>{char.gold}g</span>
+                      {char.currentActivity && (
+                        <span style={{ marginLeft: "1ch", color: "#00ffff" }}>[{char.currentActivity}]</span>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </TerminalPanel>
-            </div>
-          )}
-        </div>
-
-        {/* Empty State */}
-        {!isLoading && (!characters || characters.length === 0) && (
-          <div className="text-center py-12">
-            <TerminalPanel variant="cyan" className="max-w-md mx-auto">
-              <pre className="text-6xl text-cyan-400 mb-4">⚔</pre>
-              <h2 className="text-2xl font-bold mb-2 text-cyan-400 uppercase">
-                No Characters Yet
-              </h2>
-              <p className="text-green-400 mb-6 text-sm">
-                Create your first character to start your journey!
-              </p>
-              <TerminalButton
-                onClick={() => navigate("/create")}
-                variant="primary"
-                className="w-full"
-              >
-                [+] Create Character
-              </TerminalButton>
-            </TerminalPanel>
+              );
+            })}
           </div>
         )}
 
-        {/* ASCII Footer */}
-        <div className="mt-8 text-center">
-          <pre className="text-green-800 text-xs leading-tight">
-            {"═".repeat(60)}
-          </pre>
+        {/* Create New Option */}
+        {canCreateMore && (
+          <>
+            <div>{hLine}</div>
+            <div
+              style={{
+                padding: "0.5em 2ch",
+                cursor: "pointer",
+                color: selectedIndex === charCount ? "#ffff00" : "#00ff00",
+              }}
+              onClick={() => setSelectedIndex(charCount)}
+              onDoubleClick={() => navigate("/create")}
+            >
+              {selectedIndex === charCount ? ">" : " "} {charCount + 1}. [+] Create New Character
+              <span style={{ color: "#666666" }}> ({charCount}/{maxCharacters} slots)</span>
+            </div>
+          </>
+        )}
+
+        <div>{hLine}</div>
+
+        {/* Controls */}
+        <div style={{ color: "#666666" }}>{padLine("Arrow keys: Navigate | Enter: Select | Delete: Remove")}</div>
+
+        {/* Bottom border */}
+        <div>{hLine}</div>
+
+        {/* Version */}
+        <div style={{ textAlign: "center", marginTop: "1em", color: "#333333" }}>
+          v0.1.0 | Idle Raiders
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm !== null && (
+        <AlertDialog open={true} onOpenChange={() => setShowDeleteConfirm(null)}>
+          <AlertDialogContent
+            style={{
+              backgroundColor: "#000000",
+              border: "2px solid #ff0000",
+              fontFamily: "'Courier New', monospace",
+            }}
+          >
+            <AlertDialogHeader>
+              <AlertDialogTitle style={{ color: "#ff0000" }}>
+                DELETE CHARACTER?
+              </AlertDialogTitle>
+              <AlertDialogDescription style={{ color: "#00ff00" }}>
+                This action cannot be undone. This will permanently delete the character and all progress.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                style={{
+                  backgroundColor: "transparent",
+                  border: "1px solid #00ff00",
+                  color: "#00ff00",
+                }}
+                onClick={() => setShowDeleteConfirm(null)}
+              >
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                style={{
+                  backgroundColor: "transparent",
+                  border: "1px solid #ff0000",
+                  color: "#ff0000",
+                }}
+                onClick={() => {
+                  if (showDeleteConfirm !== null) {
+                    deleteCharacterMutation.mutate(showDeleteConfirm);
+                    setShowDeleteConfirm(null);
+                  }
+                }}
+              >
+                DELETE
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }
