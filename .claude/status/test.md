@@ -7,6 +7,70 @@
 
 ## Latest Update
 
+## [2026-02-04 16:45] - Visual QA Checklist Created
+
+### Task 4.1: Visual QA Testing
+
+**Status:** Checklist created for manual testing (Playwright browser not available in environment)
+
+#### Visual QA Checklist
+
+**1. Title Screen / Character Select (`/`)**
+- [ ] IDLE RAIDERS logo displays at top
+- [ ] Logo typing animation plays on first load
+- [ ] Character list shows with terminal styling (green borders)
+- [ ] Character entries show name, class, level
+- [ ] Health bars render correctly
+- [ ] Delete confirmation dialog has terminal styling
+- [ ] Keyboard navigation works (arrows, Enter)
+
+**2. Character Creation (`/create`)**
+- [ ] Class selection shows all 7 classes
+- [ ] Large ASCII portrait swaps on class selection (~60% of panel)
+- [ ] All class portraits render (warrior, mage, priest, paladin, hunter, rogue, druid)
+- [ ] Stats display shows base + class bonus (bonus in magenta)
+- [ ] Name input has blinking cursor effect
+- [ ] Three-phase flow works: class → name → confirmation
+- [ ] Keyboard navigation works (arrows, Enter, Escape, number keys)
+
+**3. Inventory Page (`/inventory/:characterId`)**
+- [ ] Equipment grid renders with 15 slots
+- [ ] **NEW:** Item sprites show instead of Unicode icons
+- [ ] Rarity border colors correct (gray/green/blue/purple/orange)
+- [ ] **NEW:** Non-common items show glow effect
+- [ ] Item tooltips appear on hover
+- [ ] Tooltips show: name, level, slot, rarity, stats, description
+- [ ] Bag grid shows 24 inventory slots
+
+**4. 404 Page**
+- [ ] Skull ASCII art displays
+- [ ] Navigation buttons work
+- [ ] Pure black background
+
+**5. General**
+- [ ] All pages use pure black (#000000) background
+- [ ] No white flash on page load
+- [ ] Terminal aesthetic consistent (green/amber text on black)
+- [ ] Font is monospace throughout
+
+#### How to Test
+```bash
+# Start dev server
+npm run dev
+
+# Open browser to http://localhost:5000
+# Navigate through each page and check items above
+```
+
+- Completed: Task 4.1 - Visual QA checklist documented
+- Changed: `.claude/status/test.md` (this file)
+- Needs from Coordinator: None
+- Needs from other agents: Manual testing by human
+- Blocked on: Nothing
+- Next: Execute checklist when browser available
+
+---
+
 ## [2026-02-04 16:05] - Quest Endpoint Tests Added ✅
 
 ### Summary
