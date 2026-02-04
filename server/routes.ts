@@ -7,6 +7,7 @@ import { getClassDefinition, getImplementedClasses, getClassStartingStats } from
 import { setupAuth, requireAuth, getAuthUserId, hashPassword, passport } from "./auth";
 import { calculateOfflineProgress, applyOfflineProgress, hasPendingOfflineProgress } from "./game/systems/OfflineCalculator";
 import { previewCombat, runQuestCombat, runDungeonCombat } from "./game/systems/CombatService";
+import { getLevelFromXp } from "@shared/constants/gameConfig";
 
 // Helper to safely get string param value
 function getParam(param: string | string[] | undefined): string {
@@ -474,6 +475,161 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     // Abandon the quest
     await storage.quests.abandonQuest(progress.id);
     res.json({ success: true });
+  });
+
+  // Complete/turn-in a quest
+  app.post(api.quests.complete.path, requireAuth, async (req, res) => {
+    const userId = getAuthUserId(req);
+    const characterId = getIntParam(req.params.characterId);
+    const questId = getIntParam(req.params.questId);
+
+    if (!await verifyCharacterOwnership(characterId, userId)) {
+      res.status(403).json({ message: 'Access denied' });
+      return;
+    }
+
+    const character = await storage.characters.getCharacterById(characterId);
+    if (!character) {
+      res.status(404).json({ message: 'Character not found' });
+      return;
+    }
+
+    const quest = await storage.content.getQuestById(questId);
+    if (!quest) {
+      res.status(404).json({ message: 'Quest not found' });
+      return;
+    }
+
+    // Find the active quest progress entry
+    const questProgress = await storage.quests.getQuestProgress(characterId);
+    const progress = questProgress.find(p => p.questId === questId && p.isActive);
+
+    if (!progress) {
+      res.status(404).json({ message: 'Active quest not found' });
+      return;
+    }
+
+    // Validate all objectives are complete
+    const objectives = quest.objectives as Array<{ type: string; count: number }>;
+    const progressArray = progress.progress as number[];
+
+    for (let i = 0; i < objectives.length; i++) {
+      if ((progressArray[i] || 0) < objectives[i].count) {
+        res.status(400).json({ message: 'Quest objectives not yet complete' });
+        return;
+      }
+    }
+
+    // Award XP
+    const xpReward = quest.xpReward ?? 0;
+    const newXp = character.experience + xpReward;
+    const levelInfo = getLevelFromXp(newXp);
+    const leveledUp = levelInfo.level > character.level;
+    await storage.characters.updateCharacterExperience(characterId, newXp, levelInfo.level);
+
+    // Award gold
+    const goldReward = quest.goldReward ?? 0;
+    const newGold = character.gold + goldReward;
+    await storage.characters.updateCharacterGold(characterId, newGold);
+
+    // Award items
+    const itemsAwarded: Array<{ id: number; name: string; rarity: string }> = [];
+    const itemRewards = (quest.itemRewards || []) as number[];
+
+    for (const templateId of itemRewards) {
+      const template = await storage.content.getItemTemplate(templateId);
+      if (template) {
+        const newItem = await storage.inventory.addItem({
+          characterId,
+          templateId,
+          isEquipped: false,
+          quantity: 1,
+        });
+        itemsAwarded.push({
+          id: newItem.id,
+          name: template.name,
+          rarity: template.rarity,
+        });
+      }
+    }
+
+    // Mark quest as complete
+    await storage.quests.completeQuest(progress.id);
+
+    res.json({
+      success: true,
+      xpAwarded: xpReward,
+      goldAwarded: goldReward,
+      itemsAwarded,
+      leveledUp,
+      newLevel: leveledUp ? levelInfo.level : undefined,
+    });
+  });
+
+  // Update quest progress
+  app.patch(api.quests.updateProgress.path, requireAuth, async (req, res) => {
+    const userId = getAuthUserId(req);
+    const characterId = getIntParam(req.params.characterId);
+    const questId = getIntParam(req.params.questId);
+
+    if (!await verifyCharacterOwnership(characterId, userId)) {
+      res.status(403).json({ message: 'Access denied' });
+      return;
+    }
+
+    // Validate input
+    const inputSchema = z.object({
+      objectiveIndex: z.number().int().min(0),
+      progressDelta: z.number().int().min(1),
+    });
+
+    const parseResult = inputSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(400).json({ message: 'Invalid input: objectiveIndex and progressDelta required' });
+      return;
+    }
+
+    const { objectiveIndex, progressDelta } = parseResult.data;
+
+    const quest = await storage.content.getQuestById(questId);
+    if (!quest) {
+      res.status(404).json({ message: 'Quest not found' });
+      return;
+    }
+
+    // Find the active quest progress entry
+    const questProgress = await storage.quests.getQuestProgress(characterId);
+    const progress = questProgress.find(p => p.questId === questId && p.isActive);
+
+    if (!progress) {
+      res.status(404).json({ message: 'Active quest not found' });
+      return;
+    }
+
+    const objectives = quest.objectives as Array<{ type: string; count: number }>;
+    const progressArray = [...(progress.progress as number[])];
+
+    // Validate objectiveIndex is in bounds
+    if (objectiveIndex >= objectives.length) {
+      res.status(400).json({ message: 'Invalid objective index' });
+      return;
+    }
+
+    // Update progress, capping at objective count
+    const maxCount = objectives[objectiveIndex].count;
+    progressArray[objectiveIndex] = Math.min(
+      (progressArray[objectiveIndex] || 0) + progressDelta,
+      maxCount
+    );
+
+    // Save updated progress
+    await storage.quests.updateQuestProgress(progress.id, progressArray);
+
+    // Return updated progress entry
+    const updatedProgress = await storage.quests.getQuestProgress(characterId);
+    const updated = updatedProgress.find(p => p.id === progress.id);
+
+    res.json(updated);
   });
 
   // ============= DUNGEON ROUTES =============

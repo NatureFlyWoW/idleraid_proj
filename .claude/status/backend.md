@@ -7,6 +7,30 @@
 
 ## Latest Update
 
+## [2026-02-04 16:00]
+- Completed:
+  - **Tasks 1.2 & 1.3: Quest Turn-In and Progress Update Endpoints**
+    - POST `/api/characters/:characterId/quests/:questId/complete`
+      - Validates all objectives are complete
+      - Awards XP with level-up detection using getLevelFromXp()
+      - Awards gold to character
+      - Creates item rewards in inventory
+      - Marks quest as inactive, increments completionCount
+      - Returns: { success, xpAwarded, goldAwarded, itemsAwarded[], leveledUp, newLevel? }
+    - PATCH `/api/characters/:characterId/quests/:questId/progress`
+      - Validates objectiveIndex and progressDelta input
+      - Updates specific objective progress
+      - Caps progress at objective count (no over-progress)
+      - Returns updated quest progress entry
+- Changed:
+  - `server/routes.ts` (MODIFIED - added 2 quest endpoints ~130 lines)
+- Needs from Coordinator: None
+- Needs from other agents:
+  - Frontend: Can now build quest completion UI
+  - Test: Can add quest endpoint tests
+- Blocked on: Nothing
+- Next: Ready for next task
+
 ## [2026-02-04 15:40]
 - Completed:
   - **Auth Test Fix:**
