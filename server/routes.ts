@@ -374,7 +374,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     );
     const completedQuestIds = new Set(
       questProgress
-        .filter(p => !p.isActive && p.completionCount > 0)
+        .filter(p => !p.isActive && (p.completionCount ?? 0) > 0)
         .map(p => p.questId)
     );
 
@@ -878,9 +878,9 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     // Calculate available talent points
     const TALENT_START_LEVEL = 10;
     const earnedPoints = Math.max(0, character.level - TALENT_START_LEVEL + 1);
-    const tree1Spent = (character.talentTree1Points ?? []).reduce((a, b) => a + b, 0);
-    const tree2Spent = (character.talentTree2Points ?? []).reduce((a, b) => a + b, 0);
-    const tree3Spent = (character.talentTree3Points ?? []).reduce((a, b) => a + b, 0);
+    const tree1Spent = Object.values(character.talentTree1Points ?? {}).reduce((a: number, b: number) => a + b, 0);
+    const tree2Spent = Object.values(character.talentTree2Points ?? {}).reduce((a: number, b: number) => a + b, 0);
+    const tree3Spent = Object.values(character.talentTree3Points ?? {}).reduce((a: number, b: number) => a + b, 0);
     const totalSpent = tree1Spent + tree2Spent + tree3Spent;
     const available = earnedPoints - totalSpent;
 
@@ -936,9 +936,9 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     // Check if player has available points
     const TALENT_START_LEVEL = 10;
     const earnedPoints = Math.max(0, character.level - TALENT_START_LEVEL + 1);
-    const tree1Spent = (character.talentTree1Points ?? []).reduce((a, b) => a + b, 0);
-    const tree2Spent = (character.talentTree2Points ?? []).reduce((a, b) => a + b, 0);
-    const tree3Spent = (character.talentTree3Points ?? []).reduce((a, b) => a + b, 0);
+    const tree1Spent = Object.values(character.talentTree1Points ?? {}).reduce((a: number, b: number) => a + b, 0);
+    const tree2Spent = Object.values(character.talentTree2Points ?? {}).reduce((a: number, b: number) => a + b, 0);
+    const tree3Spent = Object.values(character.talentTree3Points ?? {}).reduce((a: number, b: number) => a + b, 0);
     const totalSpent = tree1Spent + tree2Spent + tree3Spent;
 
     if (totalSpent >= earnedPoints) {
@@ -962,21 +962,18 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     }
 
     const talent = talentTree.talents[talentIndex];
+    const talentId = input.data.talentId;
 
-    // Get current allocation for this tree
-    const currentAllocation = input.data.treeIndex === 0
-      ? [...(character.talentTree1Points ?? [])]
+    // Get current allocation for this tree (Record<talentId, ranks>)
+    const currentAllocation: Record<string, number> = input.data.treeIndex === 0
+      ? { ...(character.talentTree1Points ?? {}) }
       : input.data.treeIndex === 1
-      ? [...(character.talentTree2Points ?? [])]
-      : [...(character.talentTree3Points ?? [])];
-
-    // Ensure array is long enough
-    while (currentAllocation.length <= talentIndex) {
-      currentAllocation.push(0);
-    }
+      ? { ...(character.talentTree2Points ?? {}) }
+      : { ...(character.talentTree3Points ?? {}) };
 
     // Check if talent is already maxed
-    if (currentAllocation[talentIndex] >= talent.maxRanks) {
+    const currentRanks = currentAllocation[talentId] ?? 0;
+    if (currentRanks >= talent.maxRanks) {
       res.status(400).json({ message: 'Talent already at maximum ranks' });
       return;
     }
@@ -993,15 +990,14 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
     // Check prerequisite talent
     if (talent.requiredTalentId) {
-      const prereqIndex = talentTree.talents.findIndex(t => t.id === talent.requiredTalentId);
-      if (prereqIndex === -1 || (currentAllocation[prereqIndex] ?? 0) === 0) {
+      if ((currentAllocation[talent.requiredTalentId] ?? 0) === 0) {
         res.status(400).json({ message: 'Prerequisite talent not learned' });
         return;
       }
     }
 
     // Apply the talent point
-    currentAllocation[talentIndex]++;
+    currentAllocation[talentId] = currentRanks + 1;
 
     // Update the character
     const updateData = input.data.treeIndex === 0
@@ -1014,8 +1010,8 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
     res.json({
       success: true,
-      talentId: input.data.talentId,
-      newRank: currentAllocation[talentIndex],
+      talentId: talentId,
+      newRank: currentAllocation[talentId],
       pointsRemaining: earnedPoints - totalSpent - 1,
     });
   });
@@ -1047,9 +1043,9 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
     // Reset talents and deduct gold
     await storage.characters.updateCharacter(characterId, {
-      talentTree1Points: [],
-      talentTree2Points: [],
-      talentTree3Points: [],
+      talentTree1Points: {},
+      talentTree2Points: {},
+      talentTree3Points: {},
       respecCount: respecCount + 1,
     });
     await storage.characters.updateCharacterGold(characterId, character.gold - cost);
