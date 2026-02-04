@@ -228,6 +228,39 @@ export const api = {
         404: z.object({ message: z.string() }),
       },
     },
+    complete: {
+      method: 'POST' as const,
+      path: '/api/characters/:characterId/quests/:questId/complete',
+      responses: {
+        200: z.object({
+          success: z.boolean(),
+          xpAwarded: z.number(),
+          goldAwarded: z.number(),
+          itemsAwarded: z.array(z.object({
+            id: z.number(),
+            name: z.string(),
+            rarity: z.string(),
+          })),
+          leveledUp: z.boolean(),
+          newLevel: z.number().optional(),
+        }),
+        400: z.object({ message: z.string() }),
+        404: z.object({ message: z.string() }),
+      },
+    },
+    updateProgress: {
+      method: 'PATCH' as const,
+      path: '/api/characters/:characterId/quests/:questId/progress',
+      input: z.object({
+        objectiveIndex: z.number().int().min(0),
+        progressDelta: z.number().int().min(1),
+      }),
+      responses: {
+        200: z.custom<typeof characterQuestProgress.$inferSelect>(),
+        400: z.object({ message: z.string() }),
+        404: z.object({ message: z.string() }),
+      },
+    },
   },
 
   // ============= ZONES =============
