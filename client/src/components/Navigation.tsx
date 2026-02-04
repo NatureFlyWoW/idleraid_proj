@@ -5,30 +5,36 @@ export function Navigation() {
   const [location] = useLocation();
 
   const links = [
-    { href: "/", label: "Home" },
-    { href: "/demo", label: "Demo App" },
+    { href: "/", label: "Characters" },
+    { href: "/dev", label: "Dev" },
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-md">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="font-display font-bold text-xl tracking-tighter">
-          Starter<span className="text-primary/40">Kit</span>
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-green-800 bg-black font-mono">
+      <div className="container mx-auto px-4 h-12 flex items-center justify-between">
+        {/* Logo */}
+        <div className="flex items-center gap-2">
+          <span className="text-green-600 text-sm">{">"}</span>
+          <span className="font-bold text-yellow-400 tracking-wider">
+            IDLE<span className="text-green-500">RAIDERS</span>
+          </span>
+          <span className="text-green-700 text-xs hidden sm:inline">v0.1.0</span>
         </div>
 
-        <div className="flex items-center gap-1 bg-secondary/50 p-1 rounded-full">
+        {/* Navigation Links */}
+        <div className="flex items-center gap-1">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={cn(
-                "px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200",
+                "px-3 py-1 text-sm transition-all duration-100 border",
                 location === link.href
-                  ? "bg-background shadow-sm text-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                  ? "border-green-600 text-green-400 bg-green-900/20"
+                  : "border-transparent text-green-600 hover:text-green-400 hover:border-green-800"
               )}
             >
-              {link.label}
+              [{link.label}]
             </Link>
           ))}
         </div>

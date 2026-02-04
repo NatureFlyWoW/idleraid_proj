@@ -1,21 +1,51 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { useLocation } from "wouter";
+import { TerminalButton } from "@/components/game/TerminalPanel";
 
 export default function NotFound() {
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md mx-4">
-        <CardContent className="pt-6">
-          <div className="flex mb-4 gap-2">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-            <h1 className="text-2xl font-bold text-gray-900">404 Page Not Found</h1>
-          </div>
+  const [, navigate] = useLocation();
 
-          <p className="mt-4 text-sm text-gray-600">
-            Did you forget to add the page to the router?
-          </p>
-        </CardContent>
-      </Card>
+  return (
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 font-mono">
+      {/* ASCII Art 404 */}
+      <pre className="text-red-500 text-xs sm:text-sm leading-tight mb-6">
+{`╔═══════════════════════════════════════════════════════╗
+║                                                       ║
+║     ██╗  ██╗ ██████╗ ██╗  ██╗                        ║
+║     ██║  ██║██╔═══██╗██║  ██║                        ║
+║     ███████║██║   ██║███████║                        ║
+║     ╚════██║██║   ██║╚════██║                        ║
+║          ██║╚██████╔╝     ██║                        ║
+║          ╚═╝ ╚═════╝      ╚═╝                        ║
+║                                                       ║
+║              PAGE NOT FOUND                          ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝`}
+      </pre>
+
+      {/* Error Message */}
+      <div className="text-center mb-6">
+        <p className="text-green-500 text-sm mb-2">
+          {">"} Error: The requested page does not exist.
+        </p>
+        <p className="text-green-700 text-xs">
+          Perhaps you forgot to add the route to the router?
+        </p>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex gap-4">
+        <TerminalButton onClick={() => navigate("/")}>
+          [←] Return Home
+        </TerminalButton>
+        <TerminalButton variant="secondary" onClick={() => window.history.back()}>
+          [↩] Go Back
+        </TerminalButton>
+      </div>
+
+      {/* Footer */}
+      <div className="mt-8 text-green-800 text-xs">
+        {"─".repeat(40)}
+      </div>
     </div>
   );
 }
