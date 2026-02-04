@@ -153,6 +153,679 @@
 
 ---
 
+### The Player Journey
+
+This section describes the complete player experience from character creation to post-endgame, designed as a coherent narrative rather than a feature list. Think of it as the "internal strategy guide" for how players should experience Idle Raiders.
+
+#### New Player Experience (Minute 0-60)
+
+**The Hook: Why This Game?**
+
+When a player launches Idle Raiders for the first time, they need to understand within 60 seconds:
+1. This is an idle game (it plays itself)
+2. This is an MMORPG fantasy (classes, dungeons, raids)
+3. They're about to start an epic journey
+
+**First Boot Sequence (0-2 minutes):**
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                     IDLE RAIDERS                              │
+│                                                               │
+│     "The MMORPG that respects your time."                    │
+│                                                               │
+│            [NEW GAME]    [CONTINUE]                          │
+└──────────────────────────────────────────────────────────────┘
+```
+
+1. **Title screen** displays for 3 seconds with evocative fantasy art
+2. **"New Game"** immediately enters character creation
+3. **No account creation gate** - play starts instantly
+
+**Character Creation (2-5 minutes):**
+
+The character creation screen must achieve:
+- Class selection with clear identity (Warrior = tank/melee, Mage = glass cannon, etc.)
+- Visual preview of class fantasy (ASCII art of each class)
+- Brief tooltip explaining each class's idle gameplay style
+
+| Class | Idle Summary | Appeal |
+|-------|--------------|--------|
+| Warrior | "Set and forget. High survivability, steady damage." | Players who want reliability |
+| Mage | "Bursty. High damage but needs attention for mana." | Players who like optimization |
+| Priest | "Support playstyle. Keeps party alive in dungeons." | Players who like helping |
+| Rogue | "Fast-paced combo system. High skill expression." | Players who like complexity |
+| Hunter | "Pet companion. Two characters for the price of one." | Players who like pets |
+| Paladin | "Hybrid. Can do anything but excels at nothing." | Flexible players |
+| Druid | "Shapeshifter. Changes role based on talent spec." | Indecisive players |
+
+After selecting class and entering a name:
+- Character appears in Northshire Valley (starting zone)
+- First quest auto-accepted: "Wolves at the Gate"
+
+**Tutorial Quest Chain (5-15 minutes):**
+
+The tutorial teaches idle game concepts through the first 4 quests:
+
+| Quest | Teaches | Duration | Player Action |
+|-------|---------|----------|---------------|
+| Wolves at the Gate | Combat runs automatically | 45 seconds | Watch combat happen |
+| Candle Collection | Loot is auto-collected | 60 seconds | Notice items appearing |
+| Kobold Menace | Combat log shows what happened | 75 seconds | Read the log |
+| Garrick Padfoot | Boss fights take longer but give better loot | 90 seconds | Equip the reward |
+
+**Critical Tutorial Moment: "The Close"**
+
+After completing the first boss quest (Garrick Padfoot), the game displays:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                  YOU CAN CLOSE THIS NOW                       │
+│                                                               │
+│   Idle Raiders will keep fighting while you're away.          │
+│   Come back anytime to collect your rewards.                  │
+│                                                               │
+│   Your character will:                                        │
+│   ✓ Continue completing quests in this zone                   │
+│   ✓ Collect gold and experience automatically                 │
+│   ✓ Stop if they die (we'll notify you)                       │
+│                                                               │
+│          [KEEP PLAYING]    [CLOSE & PROGRESS]                 │
+└──────────────────────────────────────────────────────────────┘
+```
+
+This is the defining moment of an idle game. The player learns they can walk away.
+
+**First Return (15-30 minutes after first session):**
+
+When the player returns, they see the **Offline Progress Report**:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│              WELCOME BACK, [CHARACTER NAME]!                  │
+│                                                               │
+│   While you were away (23 minutes):                           │
+│                                                               │
+│   ✓ Completed 3 quests                                        │
+│   ✓ Gained 340 XP → LEVEL UP! (Level 4)                       │
+│   ✓ Earned 28 gold                                            │
+│   ✓ Found 2 items                                             │
+│                                                               │
+│   [VIEW DETAILS]              [CONTINUE ADVENTURING]          │
+└──────────────────────────────────────────────────────────────┘
+```
+
+This moment must feel rewarding. The player should think: "The game played itself and I got stuff!"
+
+**First Hour Milestones:**
+
+| Time | Level | Unlocks | Hook for Next Session |
+|------|-------|---------|----------------------|
+| 0-5 min | 1 | Character created, tutorial starts | "Let's see what happens next" |
+| 5-15 min | 2-3 | Auto-combat demonstrated | "I wonder if I can just leave it" |
+| 15-30 min | 4-5 | First return, progress report | "This actually works!" |
+| 30-60 min | 5-6 | Second zone unlocks (Elwynn Forest) | "New area to explore" |
+
+---
+
+#### Early Game (Levels 1-20, Hours 1-10)
+
+**Player Goals in Early Game:**
+1. Understand the core loop (quest → reward → upgrade → harder content)
+2. Make first meaningful choices (talent points at 10)
+3. Experience first dungeon (Cindermaw Caverns at 15)
+4. Get hooked on the gear treadmill
+
+**Level-by-Level Progression:**
+
+| Level | Playtime | Unlocks | "One More Thing" Hook |
+|-------|----------|---------|----------------------|
+| 1-5 | 0-1 hr | Starting zone, basic abilities | "Level 10 gets talents!" |
+| 6-9 | 1-2 hr | Elwynn Forest, uncommon gear drops | "Level 10 is so close!" |
+| 10 | 2-2.5 hr | **FIRST TALENT POINT** - spec choice matters | "Level 15 unlocks dungeons!" |
+| 11-14 | 2.5-4 hr | Westfall, harder quests, elite mobs | "Dungeon at 15!" |
+| 15 | 4-5 hr | **FIRST DUNGEON** - Cindermaw Caverns | "Rare gear drops here!" |
+| 16-19 | 5-8 hr | More dungeons unlock, blue gear | "Level 20 gets a mount!" |
+| 20 | 8-10 hr | **MOUNT TRAINING** - activities 10% faster | "New zone: Redridge!" |
+
+**The First Talent Point (Level 10):**
+
+This is the first real decision the player makes. Present it dramatically:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    TALENT POINT AVAILABLE                     │
+│                                                               │
+│   You've proven yourself worthy of specialization.            │
+│   Choose your path:                                           │
+│                                                               │
+│   [ARMS]          [FURY]          [PROTECTION]                │
+│   Two-handed      Dual-wield      Tank with                   │
+│   devastation     frenzy          sword & board               │
+│                                                               │
+│   51 total points by level 60. Choose wisely... or respec.    │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**The First Dungeon (Level 15):**
+
+Cindermaw Caverns is the gateway drug to group content. Design goals:
+- 8 minutes total (short enough to complete in one session)
+- 3 bosses with simple mechanics (don't overwhelm)
+- Guaranteed rare item from final boss (immediate reward)
+- Success rate ~90% for appropriately geared player (low frustration)
+
+**First Dungeon Flow:**
+
+```
+Queue for Cindermaw Caverns
+    ↓
+Loading screen with dungeon lore
+    ↓
+6 trash packs (combat time: ~4 minutes)
+    ↓
+Boss 1: Flamewarden Gorrak (1 minute)
+    ↓
+Boss 2: Molten Lurker (1 minute)
+    ↓
+Final Boss: Pyroclast the Burning (2 minutes)
+    ↓
+Loot screen with guaranteed rare!
+    ↓
+"Run again?" prompt
+```
+
+**Early Game Economy:**
+
+| Level | Gold Income/Hour | Main Gold Sinks | Net Flow |
+|-------|------------------|-----------------|----------|
+| 1-5 | 15-25g | Training (5g) | +10-20g |
+| 6-10 | 30-50g | Training (10g), basic repairs (5g) | +15-35g |
+| 11-15 | 60-90g | Dungeon repairs (10g), minor enchants (15g) | +35-65g |
+| 16-20 | 100-150g | Mount training (100g) | +0-50g |
+
+**Target: Player should have ~200-300g by level 20 for mount training.**
+
+**Early Game Offline Behavior:**
+
+When a level 1-20 player goes offline:
+- Game continues questing in current zone
+- Average 1 level per 2-3 hours offline
+- Death unlikely (~5% chance) - mobs are easy
+- Overnight (8 hours) = ~3 levels gained
+
+**Early Game Power Targets (Quest Gear):**
+
+| Level | STR/AGI/INT (primary) | STA | HP | Damage/Spell Power |
+|-------|----------------------|-----|----|--------------------|
+| 5 | 25-30 | 18-22 | 180-220 | 15-20 |
+| 10 | 40-50 | 30-40 | 300-400 | 35-50 |
+| 15 | 60-80 | 45-60 | 450-600 | 60-90 |
+| 20 | 90-110 | 60-80 | 600-800 | 100-140 |
+
+---
+
+#### Mid Game (Levels 20-40, Hours 10-30)
+
+**Player Goals in Mid Game:**
+1. Commit to a spec (most talent points go into one tree)
+2. Farm dungeons for gear upgrades
+3. Experience the "gear treadmill" - dungeons get faster with better gear
+4. Start reputation grinding with factions
+
+**Level-by-Level Progression:**
+
+| Level | Playtime | Unlocks | "One More Thing" Hook |
+|-------|----------|---------|----------------------|
+| 20-24 | 10-14 hr | Redridge Mountains, tier 2 dungeons | "Epic mount at 40!" |
+| 25 | 14-16 hr | The Hollowed Depths unlocks | "More dungeons means more loot" |
+| 26-29 | 16-20 hr | Reputation grinding begins | "Honored gives good rewards" |
+| 30 | 20-22 hr | Advanced class abilities | "New powers unlocked!" |
+| 31-34 | 22-26 hr | Duskwood (haunted), tier 3 dungeons | "Level 40 epic mount!" |
+| 35 | 26-28 hr | Crimson Sanctum (multi-wing dungeon) | "Biggest dungeon yet!" |
+| 36-39 | 28-32 hr | Spec should be near-complete (30 points) | "Just 5 more levels!" |
+| 40 | 32-35 hr | **EPIC MOUNT** - activities 20% faster | "New zones unlocked!" |
+
+**The Gear Treadmill Experience:**
+
+At level 25, a player should notice:
+- Quest gear (uncommon) = 75% success rate in Serpent's Lament
+- After 3-4 dungeon runs with rare drops = 90%+ success rate
+- After 10 runs with optimal gear = 100% success, 15% faster clear time
+
+This teaches: **Better gear = faster progress = more gear per hour.**
+
+**Mid Game Economy:**
+
+| Level | Gold Income/Hour | Main Gold Sinks | Net Flow |
+|-------|------------------|-----------------|----------|
+| 21-30 | 150-250g | Repairs (25g), enchants (50g), respecs (5-15g) | +75-175g |
+| 31-40 | 300-500g | Epic mount (500g), bank tabs (100g) | Variable |
+
+**Target: Player should have ~1,000-1,500g by level 40 for epic mount and enchants.**
+
+**Mid Game Offline Behavior:**
+
+When a level 20-40 player goes offline:
+- Game continues with last dungeon or zone questing
+- Dungeon runs: 3-4 per hour offline (with dungeon selected)
+- Quest grinding: ~0.5 levels per hour offline
+- Death risk increases: 10-15% chance overnight without gear upgrades
+- **Recommendation**: Set to questing (safer) for long offline, dungeons for short AFK
+
+**Mid Game Power Targets (Dungeon Gear):**
+
+| Level | Primary Stat | STA | HP | Damage/Spell Power |
+|-------|--------------|-----|----|--------------------|
+| 25 | 130-160 | 90-110 | 900-1100 | 180-220 |
+| 30 | 180-220 | 120-150 | 1200-1500 | 260-320 |
+| 35 | 240-300 | 160-200 | 1600-2000 | 360-450 |
+| 40 | 320-400 | 200-250 | 2000-2500 | 480-600 |
+
+---
+
+#### Late Game (Levels 40-60, Hours 30-60)
+
+**Player Goals in Late Game:**
+1. Push to level cap (the long haul)
+2. Pre-raid gearing in tier 4-5 dungeons
+3. Complete attunement quests for raids
+4. Optimize spec for raiding role
+
+**Level-by-Level Progression:**
+
+| Level | Playtime | Unlocks | "One More Thing" Hook |
+|-------|----------|---------|----------------------|
+| 41-44 | 35-42 hr | Titan's Repose, epic dungeon gear | "Level 45 tier opens!" |
+| 45 | 42-45 hr | Tier 4 dungeons (Sandscar Ruins) | "Getting closer to raids!" |
+| 46-49 | 45-52 hr | Earthmother's Tomb, Serpentshrine | "50 is halfway to raids!" |
+| 50 | 52-55 hr | **HALFWAY MILESTONE** | "Only 10 levels to go!" |
+| 51-54 | 55-65 hr | Tier 5 dungeons unlock | "Pre-raid gear available!" |
+| 55 | 65-70 hr | Molten Citadel, Ashcrown City | "Best dungeon gear here!" |
+| 56-58 | 70-80 hr | Necropolis Academy, final tier | "Level 60 raids await!" |
+| 59 | 80-85 hr | Attunement quests for Heart of the Inferno | "One more level!" |
+| 60 | 85-90 hr | **LEVEL CAP - RAIDS UNLOCKED** | "Time to gear up for T1!" |
+
+**The Emotional Arc: Preparing for Raids**
+
+Levels 55-60 should feel like:
+- "I'm getting stronger. My gear is epic-quality now."
+- "I've completed everything except raids. I'm ready."
+- "The attunement quest tells me about the raid I'm about to enter."
+- "Level 60! The game transforms now."
+
+**Late Game Economy:**
+
+| Level | Gold Income/Hour | Main Gold Sinks | Net Flow |
+|-------|------------------|-----------------|----------|
+| 41-50 | 400-700g | Enchants (100-200g), profession leveling | +200-400g |
+| 51-55 | 600-900g | Superior enchants (300g), respecs (20-50g) | +200-500g |
+| 56-60 | 800-1200g | Pre-raid enchants (500g), consumables stockpile | Variable |
+
+**Target: Player should have ~5,000-8,000g by level 60 for raid preparation.**
+
+**Late Game Offline Behavior:**
+
+When a level 40-60 player goes offline:
+- Dungeon farming is primary offline activity
+- 2-3 dungeon clears per hour (dungeons take longer)
+- Death risk significant: 15-25% for undergeared players
+- **Recommendation**: Farm easier dungeons for safety, harder ones when actively watching
+
+**Late Game Power Targets (Pre-Raid Best-in-Slot):**
+
+| Level | Primary Stat | STA | HP | Damage/Spell Power |
+|-------|--------------|-----|----|--------------------|
+| 50 | 450-550 | 280-350 | 2800-3500 | 650-800 |
+| 55 | 550-700 | 350-450 | 3500-4500 | 850-1100 |
+| 60 (dungeon) | 700-900 | 450-600 | 4500-6000 | 1200-1500 |
+| 60 (pre-raid BiS) | 900-1100 | 550-700 | 5500-7000 | 1500-1800 |
+
+---
+
+#### Endgame (Level 60, Hours 60-100+)
+
+**The Game Transforms**
+
+At level 60, the game fundamentally changes:
+- **Before**: Progress = XP and levels
+- **After**: Progress = gear score and raid kills
+
+**Weekly Rhythm (Level 60 Player):**
+
+| Day | Activity | Time Investment |
+|-----|----------|-----------------|
+| Monday (Reset) | Raid: Heart of the Inferno | 60-90 minutes |
+| Tuesday | Dungeon farming for badges | 30-45 minutes |
+| Wednesday | Raid: Drakescale Sanctum | 90-120 minutes |
+| Thursday | PvP Arena matches | 20-30 minutes |
+| Friday | Dungeon farming, reputation | 30-45 minutes |
+| Weekend | Achievement hunting, alts, raiding overflow | Variable |
+
+**Raid Progression Path:**
+
+```
+Fresh Level 60 (ilvl 55-60)
+    ↓
+Dungeon Farming (ilvl 65-70) ← 10-15 hours
+    ↓
+Heart of the Inferno - Tier 1 (ilvl 66-71) ← Weekly lockout
+    ↓
+Drakescale Sanctum - Tier 2 (ilvl 71-76) ← Requires T1 completion
+    ↓
+Hive of the Swarm-God - Tier 2.5 (ilvl 76-81) ← Attunement quest
+    ↓
+Citadel of the Damned - Tier 3 (ilvl 81-88) ← Ultimate challenge
+    ↓
+Full T3 Best-in-Slot (ilvl 85-88)
+```
+
+**Endgame Idle Loop:**
+
+The idle loop changes at 60:
+- **Active play**: Raid bosses require attention (boss abilities, phase transitions)
+- **Idle play**: Dungeon farming, daily quests, arena matches
+- **Offline**: Dungeon farming only (raids have weekly lockout, save those)
+
+**Endgame Economy:**
+
+| Activity | Gold Income | Gold Sinks |
+|----------|-------------|------------|
+| Dungeon farming | 800-1200g/hr | Repairs (100g/hr) |
+| Raiding | 500g/boss | Consumables (200-500g/raid) |
+| Daily quests | 300g/day | Respec (50g) |
+| PvP | Negligible | PvP gear (Honor/Conquest, not gold) |
+
+**Target: Maintain 5,000-10,000g buffer for raid consumables and enchants.**
+
+**Endgame Power Targets:**
+
+| Gear Tier | Primary Stat | STA | HP | DPS/HPS |
+|-----------|--------------|-----|-----|---------|
+| Dungeon BiS | 900-1100 | 550-700 | 5500-7000 | 450-550 |
+| T1 (4-piece) | 1000-1200 | 650-800 | 6500-8000 | 550-650 |
+| T2 (4-piece) | 1150-1400 | 750-950 | 7500-9500 | 680-800 |
+| T2.5 (mixed) | 1300-1550 | 850-1050 | 8500-10500 | 800-950 |
+| T3 (4-piece) | 1500-1800 | 1000-1250 | 10000-12500 | 1000-1200 |
+
+---
+
+#### Post-Endgame: The Forever Game (Hours 100+)
+
+**What Keeps Players at Level 60 for Months?**
+
+1. **Gear Completion**: Full T3 takes 3-4 months of weekly raids
+2. **Legendary Chase**: 1-5% drop rates mean dozens of kills
+3. **Achievement Hunting**: 2,500+ points across hundreds of achievements
+4. **Alt Characters**: Second character with different class
+5. **Collection Completion**: All mounts, pets, transmogs
+6. **PvP Seasons**: 3-month competitive cycles with rewards
+7. **Guild Progression**: Collective goals and social bonds
+
+**The Legendary Grind:**
+
+| Legendary Item | Drop Location | Drop Rate | Expected Kills |
+|----------------|---------------|-----------|----------------|
+| Sulfuras, Hand of Ragnaros | Infernus the Undying (T1) | 1% | ~100 kills |
+| Thunderfury, Blessed Blade | Vyrmorthos (T2) | 0.5% bindings | ~200 kills |
+| Atiesh, Greatstaff of the Guardian | Maltheon (T3) | 40 splinters needed | 10+ weeks |
+
+**Alt Character Progression:**
+
+When starting an alt:
+- Heirloom gear (purchasable at 60) boosts XP by 50%
+- Time to 60: ~40 hours (vs 80+ hours for first character)
+- Different class = entirely different playstyle
+
+**Achievement Milestones:**
+
+| Points | Completion % | Time Investment | Reward |
+|--------|--------------|-----------------|--------|
+| 500 | 20% | 40-60 hours | Title: "Dedicated" |
+| 1000 | 40% | 80-120 hours | +50 HP account-wide |
+| 2000 | 80% | 200-300 hours | Cosmetic Tabard |
+| 3500 | 95% | 500+ hours | +100 HP, +1% Crit |
+| 5000 | 100% | 1000+ hours | Title: "Legend of Valdoria", Unique Mount |
+
+---
+
+### Idle Design Philosophy
+
+This section defines how Idle Raiders works as an idle game specifically - not just an MMORPG with auto-play.
+
+#### Session Design Matrix
+
+**The Core Question: What does the player DO when they open the game?**
+
+| Session Length | Player Intent | Game Response | Example |
+|----------------|---------------|---------------|---------|
+| 30 seconds | Check progress | Show summary, no decisions required | "840 XP, 2 items found" |
+| 2 minutes | Quick check-in | Summary + "anything need attention?" | Equip upgrade, collect rewards |
+| 10 minutes | Active play | Make decisions: gear, talents, activity | Switch to dungeon, optimize gear |
+| 30 minutes | Planning session | Strategic choices, raid preparation | Respec talents, plan raid night |
+| 60+ minutes | Deep engagement | Raid attempt, achievement hunting | Full raid clear with attention |
+
+**30-Second Check-In:**
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│   [Character Portrait]    THROGNAR - Level 42 Warrior        │
+│   ████████████████████░░ 78% to 43                           │
+│                                                               │
+│   Last 4 hours: +2,340 XP | +856 Gold | 3 Items              │
+│   Current: Questing in Duskwood (12 min remaining)           │
+│                                                               │
+│   ⚠ 1 item upgrade available     [VIEW]                      │
+│                                                               │
+│   [CLAIM REWARDS]                      [KEEP ADVENTURING]    │
+└──────────────────────────────────────────────────────────────┘
+```
+
+Player can close immediately. Everything is fine.
+
+**2-Minute Check-In:**
+
+Same as above, plus:
+1. Tap "VIEW" to see the upgrade
+2. Compare stats: "Gnoll Hide Leggings → Duskwood Stalker Legs (+12 AGI)"
+3. Tap "EQUIP"
+4. Close the app
+
+Total: 2 minutes. One meaningful decision made.
+
+**10-Minute Active Session:**
+
+1. Open game, see summary (30 seconds)
+2. Equip any upgrades (1 minute)
+3. Check quest progress - should I switch zones? (2 minutes)
+4. Look at dungeon list - am I strong enough for the next tier? (2 minutes)
+5. Run a quick dungeon (5 minutes)
+6. Close or continue
+
+**30-Minute Planning Session:**
+
+1. Review all gear - identify weak slots (5 minutes)
+2. Plan which dungeons to farm for upgrades (3 minutes)
+3. Review talent build - is this optimal? (5 minutes)
+4. Check reputation - which faction should I focus? (3 minutes)
+5. Run 2-3 dungeons with specific loot targets (15 minutes)
+
+**60+ Minute Raid Session:**
+
+1. Confirm consumables (flasks, potions, food)
+2. Review boss mechanics for next fight
+3. Start raid, pay attention to boss phases
+4. Make mid-fight decisions (use defensive cooldown, prioritize target)
+5. Collect loot, decide who gets what
+6. Continue to next boss or stop for the week
+
+---
+
+#### Offline Progression Model by Phase
+
+**Core Principle: Offline progress is a gift, not a replacement for playing.**
+
+| Player Level | Offline 1 Hour | Offline 8 Hours | Overnight Risk |
+|--------------|----------------|-----------------|----------------|
+| 1-10 | 0.3 levels | 2-3 levels | Death: <5% |
+| 11-20 | 0.2 levels | 1.5-2 levels | Death: 5-10% |
+| 21-40 | 0.15 levels | 1-1.5 levels | Death: 10-20% |
+| 41-60 | 0.1 levels | 0.8-1 level | Death: 15-25% |
+| 60 (farming) | 3-4 dungeon clears | 25-30 dungeon clears | Death: 10-15% |
+
+**Offline Activity Selection:**
+
+Players should set their offline activity based on intent:
+
+| Intent | Best Offline Activity | Risk | Reward |
+|--------|----------------------|------|--------|
+| Safe progression | Quest grinding in lower zone | Minimal death | Steady XP/gold |
+| Gear hunting | Dungeon farming (comfortable tier) | Moderate | Rare drops |
+| High risk/reward | Dungeon farming (challenging tier) | High death | Epic drops |
+| AFK overnight | Quest grinding or easy dungeon | Safe | Good XP accumulation |
+
+**What Happens When You Return:**
+
+Level 15 player, offline 8 hours, questing in Westfall:
+```
+┌──────────────────────────────────────────────────────────────┐
+│              WELCOME BACK, THROGNAR!                          │
+│                                                               │
+│   While you were away (8 hours 23 minutes):                   │
+│                                                               │
+│   ✓ Completed 28 quests                                       │
+│   ✓ Gained 4,280 XP → LEVEL UP! (15 → 17)                    │
+│   ✓ Earned 342 gold                                           │
+│   ✓ Found 12 items (2 upgrades!)                              │
+│                                                               │
+│   Rested XP Bonus: +890 XP (now exhausted)                   │
+│                                                               │
+│   [VIEW COMBAT LOG]        [VIEW ITEMS]        [CONTINUE]     │
+└──────────────────────────────────────────────────────────────┘
+```
+
+Level 60 player, offline 8 hours, dungeon farming:
+```
+┌──────────────────────────────────────────────────────────────┐
+│              WELCOME BACK, SERAPHINE!                         │
+│                                                               │
+│   While you were away (8 hours 12 minutes):                   │
+│                                                               │
+│   Dungeon: Molten Citadel (x24 clears)                        │
+│                                                               │
+│   ✓ Defeated Emperor Dagran Thaurissan 24 times               │
+│   ✓ Earned 8,640 gold                                         │
+│   ✓ Found 72 items (6 rare, 2 epic)                           │
+│   ✓ 3 deaths (auto-revived, continued)                        │
+│                                                               │
+│   Notable Drop: Hand of Justice (Epic Trinket)                │
+│                                                               │
+│   [VIEW LOOT]              [CONTINUE FARMING]                 │
+└──────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### Decision Points vs Automation
+
+**What Requires Player Decisions:**
+
+| System | Decision Type | Frequency | Can Skip? |
+|--------|---------------|-----------|-----------|
+| **Gear Selection** | "Is this an upgrade?" | Per item drop | Yes (auto-equip option) |
+| **Talent Allocation** | "Which talent next?" | Per level (10-60) | No |
+| **Activity Selection** | "What should I do?" | Per session | No |
+| **Dungeon Choice** | "Which dungeon to farm?" | Per session | No |
+| **Raid Boss Attempts** | "Am I ready for this?" | Weekly | No |
+| **Respec** | "Should I change my build?" | Rarely | N/A |
+| **Consumable Usage** | "Use flask for this boss?" | Per boss | Yes (auto-buff option) |
+
+**What Runs on Autopilot:**
+
+| System | Automation Level | Player Control |
+|--------|------------------|----------------|
+| **Combat Resolution** | Fully automated | AI priority settings |
+| **Quest Completion** | Fully automated | Zone selection only |
+| **Loot Collection** | Fully automated | Filter settings |
+| **Gold Collection** | Fully automated | None needed |
+| **Dungeon Trash** | Fully automated | None needed |
+| **Healing/Mana** | Automated with thresholds | Set potion thresholds |
+| **Death Recovery** | Auto-revive and continue | Can disable |
+
+**Automation Settings Menu:**
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    AUTOMATION SETTINGS                        │
+├──────────────────────────────────────────────────────────────┤
+│                                                               │
+│   COMBAT                                                      │
+│   [✓] Auto-use health potions at: [40%] health                │
+│   [✓] Auto-use mana potions at: [30%] mana                    │
+│   [✓] Use cooldowns automatically                             │
+│   [ ] Stop combat below [10%] health                          │
+│                                                               │
+│   LOOT                                                        │
+│   [✓] Auto-loot all items                                     │
+│   [✓] Auto-sell gray items                                    │
+│   [ ] Auto-equip upgrades (compares primary stat)             │
+│                                                               │
+│   OFFLINE                                                     │
+│   [✓] Auto-revive on death and continue                       │
+│   [ ] Stop on death (safer, requires manual restart)          │
+│   Max offline activity: [Current Activity ▼]                  │
+│                                                               │
+│   [SAVE]                                         [DEFAULTS]   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### Pacing Curves: How Long Should Things Take?
+
+**Core Principle: The player should always feel progress, never feel stuck.**
+
+**Activity Duration Targets:**
+
+| Activity | Level Range | Duration | Rationale |
+|----------|-------------|----------|-----------|
+| Single quest | All | 45-90 seconds | Quick dopamine hit |
+| Quest chain (5 quests) | All | 5-8 minutes | Mini-session completion |
+| Dungeon (early) | 15-30 | 8-12 minutes | One run per session |
+| Dungeon (mid) | 30-45 | 15-20 minutes | Focus required |
+| Dungeon (late) | 45-60 | 20-30 minutes | Investment feels meaningful |
+| Raid boss | 60 | 5-15 minutes | Attention required |
+| Full raid clear | 60 | 60-120 minutes | Weekly commitment |
+
+**Level Progression Speed:**
+
+| Level Range | XP per Level | Time per Level | Cumulative Time |
+|-------------|--------------|----------------|-----------------|
+| 1-10 | 400-6,200 | 15-30 min | 3-4 hours |
+| 11-20 | 6,600-24,300 | 30-60 min | 8-12 hours |
+| 21-30 | 26,000-66,800 | 45-90 min | 16-22 hours |
+| 31-40 | 72,000-145,600 | 60-120 min | 28-38 hours |
+| 41-50 | 156,000-290,800 | 90-180 min | 45-60 hours |
+| 51-60 | 310,000-517,000 | 120-240 min | 70-90 hours |
+
+**Target: 70-90 hours to reach level 60 with optimal play.**
+
+**"Too Fast" vs "Too Slow" Guidelines:**
+
+| Metric | Too Fast | Just Right | Too Slow |
+|--------|----------|------------|----------|
+| Levels 1-10 | <2 hours | 3-4 hours | >6 hours |
+| First dungeon clear | <5 minutes | 8-12 minutes | >20 minutes |
+| Level 60 reached | <40 hours | 70-90 hours | >120 hours |
+| Quest mob kill | <5 seconds | 8-15 seconds | >30 seconds |
+| Dungeon boss kill | <30 seconds | 1-3 minutes | >5 minutes |
+| Raid boss kill | <2 minutes | 5-15 minutes | >20 minutes |
+
+**If something is "Too Fast"**: Player doesn't feel accomplishment, content feels trivial.
+**If something is "Too Slow"**: Player feels stuck, disengages.
+
+---
+
 ## Character Systems
 
 ### Class Design Philosophy
@@ -1508,17 +2181,265 @@ Damage Range = 95.55 ± 20% = 76-115 damage
 | Revered | 21,000 | Superior reputation rewards (patterns) |
 | Exalted | 42,000 | Epic mounts, best-in-slot items |
 
-**Reputation Rewards Examples:**
+**Complete Faction Reward Tables:**
 
-**Faction: Ironforge Guard (Alliance)**
-- Honored: Head Enchant (+18 Stamina)
-- Revered: Epic Mount (for Dwarves, discount for others)
-- Exalted: Tabard (cosmetic), Ring (ilvl 68)
+The game features 6 major factions, each with unique rewards tailored to different playstyles. Reputation provides meaningful horizontal progression that complements gear advancement.
+
+---
+
+#### Faction 1: Stormwind Vanguard (Military)
+
+*"Defenders of the realm, shields against the darkness."*
+
+**Theme:** Melee combat, tanking, frontline warfare
+**Primary Zone:** Elwynn Forest, Redridge Mountains, Burning Steppes
+**Rep Sources:** Quests in Alliance zones, dungeon clears, raid boss kills
+
+| Standing | Points | Rewards |
+|----------|--------|---------|
+| Friendly | 3,000 | 5% vendor discount; Recipe: Heavy Sharpening Stone |
+| Honored | 9,000 | Head Enchant: +18 Stamina; Pattern: Reinforced Bracers (ilvl 48) |
+| Revered | 21,000 | Shoulder Enchant: +12 Defense Rating; Pattern: Vanguard Legguards (ilvl 58, Rare) |
+| Exalted | 42,000 | Mount: Armored Warhorse (30% activity reduction); Ring of the Vanguard (ilvl 68, Epic: +25 Stamina, +15 Defense); Tabard of the Vanguard |
+
+**Exalted Ring Stats:**
+```
+┌─────────────────────────────────────┐
+│ Ring of the Vanguard                │
+│ Binds when picked up                │
+│ Finger                              │
+│ ─────────────────────────────────── │
+│ +25 Stamina                         │
+│ +15 Defense Rating                  │
+│ +12 Dodge Rating                    │
+│ ─────────────────────────────────── │
+│ Requires Level 60                   │
+│ Requires Exalted with Vanguard      │
+└─────────────────────────────────────┘
+```
+
+---
+
+#### Faction 2: Cenarion Circle (Nature/Druid)
+
+*"Guardians of the natural world, keepers of balance."*
+
+**Theme:** Nature magic, healing, shapeshifting support
+**Primary Zone:** Duskwood, Un'Goro Crater
+**Rep Sources:** Nature-themed quests, Hive of the Swarm-God raid, plant material turn-ins
+
+| Standing | Points | Rewards |
+|----------|--------|---------|
+| Friendly | 3,000 | 5% vendor discount; Recipe: Nature Protection Potion |
+| Honored | 9,000 | Head Enchant: +18 Spirit; Pattern: Cenarion Gloves (ilvl 52, +Spirit/Int) |
+| Revered | 21,000 | Shoulder Enchant: +15 Healing Power; Formula: Enchant Weapon - Nature's Blessing (+30 Nature Damage) |
+| Exalted | 42,000 | Mount: Cenarion War Hippogryph (35% activity reduction); Staff of Natural Harmony (ilvl 68, Epic: +45 Healing, +20 Spirit, +15 Int); Cenarion Tabard |
+
+**Exalted Staff Stats:**
+```
+┌─────────────────────────────────────┐
+│ Staff of Natural Harmony            │
+│ Binds when picked up                │
+│ Two-Hand                      Staff │
+│ 92 - 158 Damage        Speed 3.00   │
+│ (41.7 damage per second)            │
+│ ─────────────────────────────────── │
+│ +20 Stamina                         │
+│ +20 Intellect                       │
+│ +20 Spirit                          │
+│ ─────────────────────────────────── │
+│ Equip: Increases healing done by    │
+│ spells and effects by up to 45.     │
+│ ─────────────────────────────────── │
+│ Requires Level 60                   │
+│ Requires Exalted with Cenarion      │
+└─────────────────────────────────────┘
+```
+
+---
+
+#### Faction 3: Shadowthorn Collective (Rogues/Assassins)
+
+*"In shadows we thrive. Information is currency."*
+
+**Theme:** Stealth, agility, critical strikes, poisons
+**Primary Zone:** Duskwood, Desolace
+**Rep Sources:** Assassination quests, stealth-based objectives, poison material turn-ins
+
+| Standing | Points | Rewards |
+|----------|--------|---------|
+| Friendly | 3,000 | 5% vendor discount; Recipe: Instant Poison III |
+| Honored | 9,000 | Head Enchant: +18 Agility; Pattern: Shadowskin Boots (ilvl 52, +Hit/Crit) |
+| Revered | 21,000 | Shoulder Enchant: +10 Critical Strike Rating; Formula: Enchant Weapon - Shadowstrike (+15 Agility, chance to deal shadow damage) |
+| Exalted | 42,000 | Mount: Shadowmane Panther (40% activity reduction, sleek black cat); Blade of the Unseen (ilvl 68, Epic Dagger: 62-94 Dmg, 1.8 Speed, +22 Agility, +1% Crit); Shadowthorn Tabard |
+
+**Exalted Dagger Stats:**
+```
+┌─────────────────────────────────────┐
+│ Blade of the Unseen                 │
+│ Binds when picked up                │
+│ Main Hand                    Dagger │
+│ 62 - 94 Damage         Speed 1.80   │
+│ (43.3 damage per second)            │
+│ ─────────────────────────────────── │
+│ +12 Agility                         │
+│ +8 Stamina                          │
+│ ─────────────────────────────────── │
+│ Equip: +22 Attack Power             │
+│ Equip: +1% Critical Strike Chance   │
+│ ─────────────────────────────────── │
+│ Requires Level 60                   │
+│ Requires Exalted with Shadowthorn   │
+└─────────────────────────────────────┘
+```
+
+---
+
+#### Faction 4: Arcane Conclave (Mages/Scholars)
+
+*"Knowledge is power. Power must be wielded wisely."*
+
+**Theme:** Arcane magic, intellect, spell damage, mana efficiency
+**Primary Zone:** Badlands (ancient ruins), Burning Steppes (elemental research)
+**Rep Sources:** Arcane research quests, elemental turn-ins, dungeon artifact collection
+
+| Standing | Points | Rewards |
+|----------|--------|---------|
+| Friendly | 3,000 | 5% vendor discount; Recipe: Greater Mana Potion |
+| Honored | 9,000 | Head Enchant: +18 Intellect; Pattern: Arcane Wristguards (ilvl 52, +Spell Hit/Int) |
+| Revered | 21,000 | Shoulder Enchant: +12 Spell Critical Rating; Formula: Enchant Weapon - Arcane Infusion (+30 Spell Damage) |
+| Exalted | 42,000 | Mount: Arcane Wyrm (35% activity reduction, glowing blue drake); Orb of Concentrated Magic (ilvl 68, Epic Off-hand: +20 Int, +15 Stamina, +29 Spell Damage); Conclave Tabard |
+
+**Exalted Off-Hand Stats:**
+```
+┌─────────────────────────────────────┐
+│ Orb of Concentrated Magic           │
+│ Binds when picked up                │
+│ Held In Off-hand                    │
+│ ─────────────────────────────────── │
+│ +20 Intellect                       │
+│ +15 Stamina                         │
+│ ─────────────────────────────────── │
+│ Equip: Increases damage and healing │
+│ done by magical spells and effects  │
+│ by up to 29.                        │
+│ Equip: Restores 6 mana per 5 sec.   │
+│ ─────────────────────────────────── │
+│ Requires Level 60                   │
+│ Requires Exalted with Conclave      │
+└─────────────────────────────────────┘
+```
+
+---
+
+#### Faction 5: Ironbound Brotherhood (Crafters/Traders)
+
+*"From raw ore to legendary steel. We forge the future."*
+
+**Theme:** Crafting, economics, professions, trade
+**Primary Zone:** All major cities (Stormwind, Ironforge equivalents)
+**Rep Sources:** Crafting quests, material turn-ins, profession achievements
+
+| Standing | Points | Rewards |
+|----------|--------|---------|
+| Friendly | 3,000 | 10% vendor discount (stacks with other factions); Recipe: Mithril Spurs (mount speed bonus) |
+| Honored | 9,000 | Access to Rare recipes across all professions; Bag: Ironbound Satchel (16 slots) |
+| Revered | 21,000 | Access to Epic profession recipes; +10% crafting critical success chance; Formula: Enchant Boots - Ironbound Speed (+8% movement) |
+| Exalted | 42,000 | Mount: Ironbound Mechanostrider (30% activity reduction, steam-powered); Hammer of the Master Smith (ilvl 68, Epic 2H Mace: +15 All Stats); Ironbound Tabard; Title: "Master Artisan" |
+
+**Exalted Weapon Stats:**
+```
+┌─────────────────────────────────────┐
+│ Hammer of the Master Smith          │
+│ Binds when picked up                │
+│ Two-Hand                       Mace │
+│ 145 - 234 Damage       Speed 3.40   │
+│ (55.7 damage per second)            │
+│ ─────────────────────────────────── │
+│ +15 Strength                        │
+│ +15 Agility                         │
+│ +15 Intellect                       │
+│ +15 Stamina                         │
+│ +15 Spirit                          │
+│ ─────────────────────────────────── │
+│ "Forged by the greatest smiths      │
+│  across a hundred generations."     │
+│ ─────────────────────────────────── │
+│ Requires Level 60                   │
+│ Requires Exalted with Brotherhood   │
+└─────────────────────────────────────┘
+```
+
+---
+
+#### Faction 6: Argent Dawn (Holy/Anti-Undead)
+
+*"Against the darkness, we are the light."*
+
+**Theme:** Holy damage, undead slaying, protection from shadow
+**Primary Zone:** Duskwood (undead hunting), Citadel of the Damned (raid)
+**Rep Sources:** Undead kill quests, T3 raid progression, Scourge Stone turn-ins
+
+| Standing | Points | Rewards |
+|----------|--------|---------|
+| Friendly | 3,000 | 5% vendor discount; Recipe: Holy Water (bonus damage vs undead) |
+| Honored | 9,000 | Head Enchant: +18 Spell Power; Pattern: Argent Boots (ilvl 52, +Shadow Resistance); Attunement: Citadel of the Damned (T3 Raid) |
+| Revered | 21,000 | Shoulder Enchant: +15 Spell Damage; Formula: Enchant Weapon - Undead Slaying (+50% damage vs Undead); Recipe: Greater Shadow Protection Potion |
+| Exalted | 42,000 | Mount: Argent Charger (40% activity reduction, holy-themed warhorse); Seal of the Argent (ilvl 68, Epic Ring: +20 Spell Power, +15 Stamina, +20 Shadow Resist); Argent Dawn Tabard; Title: "Argent Champion" |
+
+**Exalted Ring Stats:**
+```
+┌─────────────────────────────────────┐
+│ Seal of the Argent                  │
+│ Binds when picked up                │
+│ Finger                              │
+│ ─────────────────────────────────── │
+│ +15 Stamina                         │
+│ +20 Shadow Resistance               │
+│ ─────────────────────────────────── │
+│ Equip: Increases damage and healing │
+│ done by magical spells and effects  │
+│ by up to 20.                        │
+│ Equip: +75 Attack Power vs Undead   │
+│ ─────────────────────────────────── │
+│ Requires Level 60                   │
+│ Requires Exalted with Argent Dawn   │
+└─────────────────────────────────────┘
+```
+
+---
+
+### Reputation Progression Summary
+
+**Time to Exalted (estimated):**
+| Method | Time to Exalted |
+|--------|-----------------|
+| Quests Only | ~40 hours of active play |
+| Quests + Dungeon Runs | ~25 hours |
+| Quests + Turn-ins + Raids | ~15-20 hours |
+| Offline Rep Trickle (if enabled) | Adds ~500 rep/day |
+
+**Reputation Per Activity:**
+| Activity | Base Rep | Notes |
+|----------|----------|-------|
+| Zone Quest | 75-250 | Scaled by quest level |
+| Dungeon Clear | 300-500 | Per full dungeon |
+| Dungeon Boss | 75-150 | Per boss kill |
+| Raid Boss | 200-400 | Per boss kill |
+| Repeatable Turn-in | 50-100 | Material costs scale |
+| Weekly Quest | 1,000 | Once per week per faction |
+
+**Cross-Faction Benefits:**
+- Reaching Honored with 3 factions: +2% global XP
+- Reaching Revered with 3 factions: +5% global Gold
+- Reaching Exalted with 3 factions: Achievement "Diplomat" + 5% faster activity completion
+- Reaching Exalted with ALL 6 factions: Achievement "Ambassador of Azeroth" + unique cosmetic aura
 
 **Reputation Gating:**
-- Some raid attunements require Honored with specific factions
-- Best enchants locked behind Revered/Exalted
-- Provides long-term goal beyond gear
+- Citadel of the Damned (T3 Raid) requires Honored with Argent Dawn
+- Best enchant recipes locked behind Revered with respective factions
+- Epic mounts locked behind Exalted
+- Some legendary crafting requires multi-faction Exalted status
 
 ---
 
@@ -3527,6 +4448,33 @@ def process_offline_progress(last_played_time, current_time):
 ---
 
 ## Changelog
+
+### Version 1.9 (February 4, 2026)
+- **NEW: Section 3.4 - The Player Journey** (comprehensive player progression framework)
+  - New Player Experience (Minute 0-60): Tutorial flow, first impressions, emotional targets
+  - Early Game (Levels 1-20): Pacing, unlocks, content cadence
+  - Mid Game (Levels 20-40): Dungeon introduction, class mastery, economy engagement
+  - Late Game (Levels 40-60): Pre-raid progression, specialization, gear optimization
+  - Endgame (Level 60): Raid progression path, gear tiers, weekly loop
+  - Post-Endgame (Hours 100+): Retention systems, alt play, collection goals
+- **NEW: Section 3.5 - Idle Design Philosophy** (Melvor Idle-inspired framework)
+  - Session Design Matrix: 30-second to 60-minute session flows
+  - Offline Progression Model: Phase-specific offline accumulation rates
+  - Decision Points vs Automation: Player agency framework
+  - Pacing Curves: Activity durations and engagement rhythm
+- Added Power Budget Targets table (levels 1-60)
+- Added Gold Economy Model (sources/sinks by level bracket)
+- Added Time-to-Kill targets for combat pacing
+- Added Level Progression Speed chart (hours per level)
+- Added ASCII UI mockups: Offline progress modal, talent decision, automation settings
+- Integrated balance values with shared/constants/gameConfig.ts
+- **NEW: Complete Faction Reward Tables** (~250 lines)
+  - 6 major factions with unique themes and reward structures
+  - Stormwind Vanguard (tanks), Cenarion Circle (healers), Shadowthorn Collective (rogues)
+  - Arcane Conclave (casters), Ironbound Brotherhood (crafters), Argent Dawn (holy)
+  - Full reward tables: Friendly → Honored → Revered → Exalted
+  - ASCII stat blocks for all Exalted-tier items
+  - Reputation progression summary with time estimates
 
 ### Version 1.8 (February 2, 2026)
 - Added complete Battle Pass reward track (50 levels with Free/Premium tracks)
@@ -6748,6 +7696,8 @@ This document serves as the foundation for development and can be expanded with 
 ## TODO Sections
 
 ### Completed:
+- [x] **Section 3.4**: The Player Journey (NPE through Post-Endgame, completed v1.9)
+- [x] **Section 3.5**: Idle Design Philosophy (session design, offline model, completed v1.9)
 - [x] **Appendix D**: Full 15-dungeon loot table expansion (200+ items)
 - [x] **Appendix E**: Complete raid boss mechanics for all 42 bosses
 - [x] **Section 4.7**: Hunter Pet System (families, abilities, training, AI)
@@ -6760,11 +7710,15 @@ This document serves as the foundation for development and can be expanded with 
 - [x] **Section 5.6**: Threat mechanics simulation details (completed v1.8)
 - [ ] **Section 8.4**: Mobile UI wireframes (currently ASCII mockups only)
 - [x] **Section 9.3**: Battle Pass reward track specifics (50 levels, completed v1.8)
+- [ ] **Balance Tables**: Detailed item power progression curves by slot/rarity
+- [ ] **Economy Deep Dive**: Sink analysis, inflation modeling, market equilibrium
 
 ### Future Expansion Placeholders:
 - [x] Guild system specification (completed v1.8)
 - [x] Profession system (Blacksmithing, Alchemy, etc.) (completed v1.8)
-- [ ] Detailed reputation rewards per faction
+- [x] Detailed reputation rewards per faction (6 factions with full reward tables, completed v1.9)
 - [x] Mount system and collection (completed v1.8)
 - [ ] Level 70 expansion content
 - [ ] New classes (Death Knight, Shaman, Warlock)
+- [ ] World Events system (weekly/monthly rotating content)
+- [ ] Transmog/Appearance collection system

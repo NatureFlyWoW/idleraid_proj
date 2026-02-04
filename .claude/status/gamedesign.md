@@ -7,6 +7,48 @@
 
 ## Latest Update
 
+## [2026-02-04 09:30]
+- Completed (Player Journey & Idle Design Framework):
+  - **Section 3.4 - The Player Journey** (~350 lines)
+    - New Player Experience (Minute 0-60): Tutorial gates, emotional targets, first impressions
+    - Early Game (Levels 1-20): Pacing curve, unlock schedule, content cadence
+    - Mid Game (Levels 20-40): Dungeon introduction, class mastery, economy engagement
+    - Late Game (Levels 40-60): Pre-raid progression, specialization, gear optimization
+    - Endgame (Level 60): Raid progression path, T1→T3 gear journey, weekly loop
+    - Post-Endgame (Hours 100+): Retention systems, alt characters, collection goals
+  - **Section 3.5 - Idle Design Philosophy** (~300 lines)
+    - Session Design Matrix: 30-second check-ins to 60-minute raids
+    - Offline Progression Model: Phase-specific accumulation (Early/Mid/Late/Endgame)
+    - Decision Points vs Automation: Player agency framework with ASCII mockups
+    - Pacing Curves: Activity durations, level progression speed chart
+  - **Balance Integration Tables**:
+    - Power Budget Targets (levels 1-60): Health, DPS, Armor by role
+    - Gold Economy Model: Sources/sinks by level bracket (1-20, 20-40, 40-60)
+    - Time-to-Kill Targets: Quest mob (10-30s), dungeon trash (30-60s), bosses
+    - Level Progression Speed: Hours per level from 1→60
+  - Updated Changelog to version 1.9
+  - Updated TODO section with new completions
+- Changed:
+  - `Idle-Raiders-GDD.md` - Added ~650 lines of coherent design framework
+- Branch: `feature/gdd-player-journey` (working branch)
+- GDD Total Size: Now ~7,650+ lines
+- Needs from Coordinator: Merge feature branch to main when approved
+- Needs from other agents: None
+- Blocked on: Nothing
+- Continued with D1 (Faction Rewards):
+  - Added complete reward tables for 6 factions (~250 lines)
+  - Each faction themed for different playstyles (tanks, healers, rogues, casters, crafters, holy)
+  - Full Friendly→Exalted progression with specific items
+  - ASCII stat blocks for all Exalted-tier epic items
+  - Reputation progression summary with time-to-Exalted estimates
+  - Cross-faction benefits for multi-faction reputation
+- Updated changelog and TODO sections
+- Next: Commit changes, continue with remaining plan items if time permits
+
+**For Coordinator:** This session focused on CONNECTING existing systems rather than adding more. The new sections provide the missing "glue" that ties combat, progression, economy, and retention into a coherent whole. The Player Journey section now gives developers clear targets for what players should experience at each phase.
+
+---
+
 ## [2026-02-02 21:00]
 - Completed (Final Remaining Systems):
   - **P0 - Threat Mechanics**: AI simulation details (completed earlier session)
