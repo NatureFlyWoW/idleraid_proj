@@ -2,8 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { api, buildUrl } from "@shared/routes";
-import { ArrowLeft, Lock, MapPin, Skull, Star } from "lucide-react";
+import { Lock, MapPin, Skull, Star } from "lucide-react";
 import { ZoneCardSkeleton } from "@/components/game/LoadingStates";
+import { ASCIIHeader, TerminalPanel, TerminalButton } from "@/components/game/TerminalPanel";
 
 // ============================================================================
 // ZONE SELECTION PAGE - List of available zones
@@ -131,7 +132,7 @@ function ZoneCard({
         "bg-stone-900/50 border-2 transition-all",
         isLocked
           ? "border-stone-700 opacity-60"
-          : "border-stone-600 hover:border-amber-700"
+          : "border-stone-600 hover:border-green-600"
       )}
     >
       {/* Zone Header */}
@@ -141,7 +142,7 @@ function ZoneCard({
       >
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-lg font-bold font-mono text-amber-400 flex items-center gap-2">
+            <h3 className="text-lg font-bold font-mono text-green-400 flex items-center gap-2">
               {isLocked && <Lock className="w-4 h-4 text-stone-500" />}
               {zone.name}
             </h3>
@@ -197,7 +198,7 @@ function ZoneCard({
             {zone.rewards.map((reward) => (
               <span
                 key={reward}
-                className="text-[10px] font-mono px-2 py-0.5 bg-amber-900/30 border border-amber-900/50 text-amber-400"
+                className="text-[10px] font-mono px-2 py-0.5 bg-green-900/30 border border-amber-900/50 text-green-400"
               >
                 {reward}
               </span>
@@ -229,7 +230,7 @@ function ZoneCard({
               "w-full py-3 font-mono text-sm border-2 transition-all",
               isHighLevel
                 ? "bg-stone-800 border-stone-600 text-stone-400 hover:border-stone-500"
-                : "bg-amber-900/30 border-amber-700 text-amber-400 hover:bg-amber-900/50"
+                : "bg-green-900/30 border-amber-700 text-green-400 hover:bg-amber-900/50"
             )}
           >
             {isHighLevel ? "Travel (Trivial)" : "Travel to Zone"}
@@ -304,7 +305,7 @@ export default function ZoneSelection() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0908] p-4">
+      <div className="min-h-screen bg-black p-4">
         <div className="max-w-6xl mx-auto">
           {/* Header skeleton */}
           <div className="flex items-center justify-between mb-6">
@@ -328,7 +329,7 @@ export default function ZoneSelection() {
 
   if (charError || zonesError) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
         <pre className="font-mono text-xs leading-tight text-red-500">
 {`╔════════════════════════════════╗
 ║      ERROR LOADING DATA        ║
@@ -340,13 +341,13 @@ export default function ZoneSelection() {
         <div className="flex gap-4">
           <button
             onClick={() => navigate("/")}
-            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+            className="px-4 py-2 bg-green-900/30 border border-amber-700 text-green-400 font-mono text-sm hover:bg-amber-900/50"
           >
             ← Back to Characters
           </button>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+            className="px-4 py-2 bg-green-900/30 border border-amber-700 text-green-400 font-mono text-sm hover:bg-amber-900/50"
           >
             Retry
           </button>
@@ -357,11 +358,11 @@ export default function ZoneSelection() {
 
   if (!character) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
         <div className="text-red-500 font-mono">Character not found</div>
         <button
           onClick={() => navigate("/")}
-          className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm"
+          className="px-4 py-2 bg-green-900/30 border border-amber-700 text-green-400 font-mono text-sm"
         >
           Back to Characters
         </button>
@@ -374,45 +375,45 @@ export default function ZoneSelection() {
   const lockedZones = zones.filter((z: typeof ZONES[0]) => character.level < z.levelRange[0]);
 
   return (
-    <div className="min-h-screen bg-[#0a0908] text-stone-300 p-4">
+    <div className="min-h-screen bg-black text-stone-300 p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => navigate(`/game/${characterId}`)}
-            className="flex items-center gap-2 px-3 py-1 text-stone-400 hover:text-amber-400 font-mono text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Game
-          </button>
-          <h1 className="text-xl font-bold text-amber-400 font-mono">ZONE SELECTION</h1>
+        <div className="flex items-center justify-between mb-4">
+          <TerminalButton variant="secondary" onClick={() => navigate(`/game/${characterId}`)}>
+            [←] Back
+          </TerminalButton>
+          <h1 className="text-xl font-bold text-yellow-400 font-mono uppercase tracking-wider">
+            Zone Selection
+          </h1>
           <div className="w-24" />
         </div>
 
         {/* Character Info Bar */}
-        <div className="mb-6 bg-stone-900/50 border border-stone-700 p-4 flex items-center justify-between">
-          <div>
-            <span className="text-stone-500 font-mono text-sm">Character:</span>{" "}
-            <span className="text-amber-400 font-mono">{character.name}</span>
+        <TerminalPanel variant="green" className="mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-green-600 font-mono text-sm">Character:</span>{" "}
+              <span className="text-green-400 font-mono">{character.name}</span>
+            </div>
+            <div>
+              <span className="text-green-600 font-mono text-sm">Level:</span>{" "}
+              <span className="text-yellow-400 font-mono">{character.level}</span>
+            </div>
+            <div>
+              <span className="text-green-600 font-mono text-sm">Zones:</span>{" "}
+              <span className="text-cyan-400 font-mono">{unlockedZones.length}/{zones.length}</span>
+            </div>
           </div>
-          <div>
-            <span className="text-stone-500 font-mono text-sm">Level:</span>{" "}
-            <span className="text-green-400 font-mono">{character.level}</span>
-          </div>
-          <div>
-            <span className="text-stone-500 font-mono text-sm">Zones Available:</span>{" "}
-            <span className="text-amber-400 font-mono">{unlockedZones.length}/{zones.length}</span>
-          </div>
-        </div>
+        </TerminalPanel>
 
         {/* Available Zones */}
         {unlockedZones.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-amber-500 font-mono text-sm mb-4">
-              ═══ AVAILABLE ZONES ═══
+            <h2 className="text-green-400 font-mono text-sm mb-4 uppercase">
+              ═══ Available Zones ═══
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {unlockedZones.map((zone) => (
+              {unlockedZones.map((zone: typeof ZONES[0]) => (
                 <ZoneCard
                   key={zone.id}
                   zone={zone}
@@ -427,11 +428,11 @@ export default function ZoneSelection() {
         {/* Locked Zones */}
         {lockedZones.length > 0 && (
           <div>
-            <h2 className="text-stone-500 font-mono text-sm mb-4">
-              ═══ LOCKED ZONES ═══
+            <h2 className="text-green-700 font-mono text-sm mb-4 uppercase">
+              ═══ Locked Zones ═══
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {lockedZones.map((zone) => (
+              {lockedZones.map((zone: typeof ZONES[0]) => (
                 <ZoneCard
                   key={zone.id}
                   zone={zone}
@@ -445,12 +446,12 @@ export default function ZoneSelection() {
 
         {/* Footer */}
         <div className="mt-8 text-center">
-          <button
-            onClick={() => navigate(`/game/${characterId}`)}
-            className="px-6 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50 transition-colors"
-          >
-            Return to Game
-          </button>
+          <TerminalButton variant="primary" onClick={() => navigate(`/game/${characterId}`)}>
+            [▶] Return to Game
+          </TerminalButton>
+          <pre className="text-green-800 text-xs leading-tight mt-4">
+            {"═".repeat(50)}
+          </pre>
         </div>
       </div>
     </div>
