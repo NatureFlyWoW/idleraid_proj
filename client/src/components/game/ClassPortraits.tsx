@@ -259,7 +259,12 @@ const DRUID_PORTRAIT = {
   },
 };
 
-const CLASS_PORTRAITS: Record<CharacterClass, typeof WARRIOR_PORTRAIT> = {
+interface ClassPortraitData {
+  lines: string[];
+  colorMap: Record<string, string>;
+}
+
+const CLASS_PORTRAITS: Record<CharacterClass, ClassPortraitData> = {
   warrior: WARRIOR_PORTRAIT,
   paladin: PALADIN_PORTRAIT,
   hunter: HUNTER_PORTRAIT,

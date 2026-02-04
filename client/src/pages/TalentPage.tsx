@@ -6,7 +6,6 @@ import { api, buildUrl } from "@shared/routes";
 import { TalentTree, TalentTreeData, CompactTalentTree, SAMPLE_ARMS_TREE } from "@/components/game/TalentTree";
 import { TalentData } from "@/components/game/TalentNode";
 import {
-  ArrowLeft,
   RotateCcw,
   Save,
   AlertTriangle,
@@ -16,6 +15,7 @@ import {
   Shield,
   Zap,
 } from "lucide-react";
+import { TerminalPanel, TerminalButton } from "@/components/game/TerminalPanel";
 
 // ============================================================================
 // TALENT PAGE - Full talent management with 3 specialization trees
@@ -287,7 +287,7 @@ export default function TalentPage() {
   // Loading state
   if (characterLoading || talentsLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-amber-500 font-mono animate-pulse">Loading talents...</div>
       </div>
     );
@@ -296,11 +296,11 @@ export default function TalentPage() {
   // Character not found
   if (!character) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
         <div className="text-red-500 font-mono">Character not found</div>
         <button
           onClick={() => navigate("/")}
-          className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm"
+          className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-yellow-400 font-mono text-sm"
         >
           Back to Characters
         </button>
@@ -311,28 +311,26 @@ export default function TalentPage() {
   const ClassIcon = classSpecs?.icon || Swords;
 
   return (
-    <div className="min-h-screen bg-[#0a0908] text-stone-300 p-4">
+    <div className="min-h-screen bg-black text-stone-300 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => navigate(`/game/${characterId}`)}
-            className="flex items-center gap-2 px-3 py-1 text-stone-400 hover:text-amber-400 font-mono text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Game
-          </button>
-          <h1 className="text-xl font-bold text-amber-400 font-mono">TALENT TREES</h1>
+        <div className="flex items-center justify-between mb-4">
+          <TerminalButton variant="secondary" onClick={() => navigate(`/game/${characterId}`)}>
+            [←] Back
+          </TerminalButton>
+          <h1 className="text-xl font-bold text-yellow-400 font-mono uppercase tracking-wider">
+            Talent Trees
+          </h1>
           <div className="w-24" />
         </div>
 
         {/* Character & Points Info */}
-        <div className="mb-6 bg-stone-900/50 border border-stone-700 p-4">
+        <TerminalPanel variant="green" className="mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <ClassIcon className="w-8 h-8 text-amber-500" />
               <div>
-                <div className="text-amber-400 font-mono font-bold">{character.name}</div>
+                <div className="text-yellow-400 font-mono font-bold">{character.name}</div>
                 <div className="text-xs font-mono text-stone-500 capitalize">
                   Level {character.level} {character.characterClass}
                 </div>
@@ -342,7 +340,7 @@ export default function TalentPage() {
             <div className="flex items-center gap-6">
               {/* Points display */}
               <div className="text-center">
-                <div className="text-2xl font-mono font-bold text-amber-400">
+                <div className="text-2xl font-mono font-bold text-yellow-400">
                   {availablePoints}
                 </div>
                 <div className="text-[10px] font-mono text-stone-500">
@@ -371,8 +369,8 @@ export default function TalentPage() {
           {hasChanges && (
             <div className="mt-4 p-2 bg-amber-900/20 border border-amber-700 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-400" />
-                <span className="text-xs font-mono text-amber-400">
+                <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                <span className="text-xs font-mono text-yellow-400">
                   You have unsaved talent changes
                 </span>
               </div>
@@ -397,7 +395,7 @@ export default function TalentPage() {
               </div>
             </div>
           )}
-        </div>
+        </TerminalPanel>
 
         {/* Level requirement notice */}
         {character.level < 10 && (
@@ -448,7 +446,7 @@ export default function TalentPage() {
           </button>
           <button
             onClick={() => navigate(`/game/${characterId}`)}
-            className="px-6 py-2 font-mono text-sm bg-amber-900/30 border border-amber-700 text-amber-400 hover:bg-amber-900/50"
+            className="px-6 py-2 font-mono text-sm bg-amber-900/30 border border-amber-700 text-yellow-400 hover:bg-amber-900/50"
           >
             Return to Game
           </button>

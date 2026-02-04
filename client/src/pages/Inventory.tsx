@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { api, buildUrl } from "@shared/routes";
-import { ArrowLeft } from "lucide-react";
 import { InventoryGridSkeleton, ItemSlotSkeleton } from "@/components/game/LoadingStates";
+import { ASCIIHeader, TerminalPanel, TerminalButton } from "@/components/game/TerminalPanel";
 
 // ============================================================================
 // INVENTORY PAGE - Grid of items with tooltips
@@ -198,14 +198,14 @@ function InventorySlot({
   onLeave: () => void;
   onClick?: () => void;
 }) {
-  const rarityColor = item ? RARITY_COLORS[item.rarity] || RARITY_COLORS.common : "#3f3f46";
+  const rarityColor = item ? RARITY_COLORS[item.rarity] || RARITY_COLORS.common : "#166534";
 
   return (
     <div
       className={cn(
         "w-12 h-12 border-2 flex items-center justify-center cursor-pointer transition-all",
-        "hover:brightness-125",
-        item ? "bg-stone-900/80" : "bg-stone-900/30"
+        "hover:brightness-125 hover:shadow-[0_0_5px_rgba(34,197,94,0.3)]",
+        item ? "bg-black" : "bg-green-950/20"
       )}
       style={{ borderColor: rarityColor }}
       onMouseEnter={onHover}
@@ -214,24 +214,24 @@ function InventorySlot({
     >
       {item ? (
         <div
-          className="w-8 h-8 flex items-center justify-center text-lg"
+          className="w-8 h-8 flex items-center justify-center text-lg font-mono"
           style={{ color: rarityColor }}
         >
-          {/* Simple icon based on slot */}
+          {/* Simple ASCII icon based on slot */}
           {item.slot === "mainHand" || item.slot === "offHand" || item.slot === "twoHand"
             ? "⚔"
             : item.slot === "head"
-            ? "👑"
+            ? "◊"
             : item.slot === "chest"
-            ? "🛡"
+            ? "▣"
             : item.slot === "ring"
-            ? "💍"
+            ? "○"
             : item.slot === "trinket"
             ? "✧"
             : "▪"}
         </div>
       ) : (
-        <div className="text-stone-700 text-xs">·</div>
+        <div className="text-green-900 text-xs">·</div>
       )}
     </div>
   );
@@ -259,9 +259,9 @@ function EquipmentPanel({
   ];
 
   return (
-    <div className="bg-stone-900/30 border border-stone-700 p-4">
-      <div className="text-amber-500 font-mono text-xs mb-3 text-center">
-        ═══ EQUIPPED ═══
+    <div className="bg-black border-2 border-green-700 p-4 shadow-[0_0_10px_rgba(34,197,94,0.2)]">
+      <div className="text-green-400 font-mono text-xs mb-3 text-center uppercase">
+        ═══ Equipped ═══
       </div>
       <div className="space-y-2">
         {slots.map((row, rowIdx) => (
@@ -309,9 +309,9 @@ function BagGrid({
   });
 
   return (
-    <div className="bg-stone-900/30 border border-stone-700 p-4">
-      <div className="text-amber-500 font-mono text-xs mb-3 text-center">
-        ═══ BAG ({items.length}/{bagSize}) ═══
+    <div className="bg-black border-2 border-green-700 p-4 shadow-[0_0_10px_rgba(34,197,94,0.2)]">
+      <div className="text-green-400 font-mono text-xs mb-3 text-center uppercase">
+        ═══ Bag ({items.length}/{bagSize}) ═══
       </div>
       <div className="grid grid-cols-6 gap-1">
         {slots.map((item, idx) => (
@@ -464,30 +464,26 @@ export default function Inventory() {
 
   if (charLoading || inventoryLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0908] p-4">
-        <div className="max-w-7xl mx-auto">
-          {/* Header skeleton */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="w-32 h-6 bg-stone-700/30 rounded animate-pulse"></div>
-            <div className="w-48 h-6 bg-stone-700/30 rounded animate-pulse"></div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Equipment slots skeleton */}
-            <div className="lg:col-span-1">
-              <div className="w-32 h-6 bg-stone-700/30 rounded mb-4 animate-pulse"></div>
-              <div className="grid grid-cols-2 gap-2">
-                {[...Array(15)].map((_, i) => (
-                  <ItemSlotSkeleton key={i} size="medium" />
-                ))}
+      <div className="min-h-screen bg-black p-4">
+        <div className="max-w-4xl mx-auto">
+          <ASCIIHeader variant="double">Inventory</ASCIIHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TerminalPanel variant="green">
+              <div className="animate-pulse space-y-4">
+                <div className="h-6 bg-green-900/30 rounded w-1/2 mx-auto"></div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[...Array(15)].map((_, i) => (
+                    <ItemSlotSkeleton key={i} size="medium" />
+                  ))}
+                </div>
               </div>
-            </div>
-
-            {/* Bag inventory skeleton */}
-            <div className="lg:col-span-2">
-              <div className="w-32 h-6 bg-stone-700/30 rounded mb-4 animate-pulse"></div>
-              <InventoryGridSkeleton slots={20} />
-            </div>
+            </TerminalPanel>
+            <TerminalPanel variant="green">
+              <div className="animate-pulse space-y-4">
+                <div className="h-6 bg-green-900/30 rounded w-1/2 mx-auto"></div>
+                <InventoryGridSkeleton slots={24} />
+              </div>
+            </TerminalPanel>
           </div>
         </div>
       </div>
@@ -496,70 +492,63 @@ export default function Inventory() {
 
   if (charError || inventoryError) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex flex-col items-center justify-center gap-4">
-        <pre className="font-mono text-xs leading-tight text-red-500">
-{`╔════════════════════════════════╗
-║      ERROR LOADING DATA        ║
-╚════════════════════════════════╝`}
-        </pre>
-        <div className="text-red-400 font-mono text-sm max-w-md text-center">
-          {charError?.message || inventoryError?.message || "Failed to load inventory"}
-        </div>
-        <div className="flex gap-4">
-          <button
-            onClick={() => navigate("/")}
-            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
-          >
-            ← Back to Characters
-          </button>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
-          >
-            Retry
-          </button>
-        </div>
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4 p-4">
+        <ASCIIHeader variant="double">Error</ASCIIHeader>
+        <TerminalPanel variant="red" className="max-w-md">
+          <div className="text-center">
+            <p className="text-red-400 mb-4">
+              {charError?.message || inventoryError?.message || "Failed to load inventory"}
+            </p>
+            <div className="flex gap-4 justify-center">
+              <TerminalButton variant="secondary" onClick={() => navigate("/")}>
+                [←] Characters
+              </TerminalButton>
+              <TerminalButton variant="primary" onClick={() => window.location.reload()}>
+                [↻] Retry
+              </TerminalButton>
+            </div>
+          </div>
+        </TerminalPanel>
       </div>
     );
   }
 
   if (!character) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex flex-col items-center justify-center gap-4">
-        <div className="text-red-500 font-mono">Character not found</div>
-        <button
-          onClick={() => navigate("/")}
-          className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
-        >
-          Back to Characters
-        </button>
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4 p-4">
+        <TerminalPanel variant="red" className="max-w-md">
+          <div className="text-center">
+            <p className="text-red-400 mb-4">Character not found</p>
+            <TerminalButton variant="secondary" onClick={() => navigate("/")}>
+              [←] Back to Characters
+            </TerminalButton>
+          </div>
+        </TerminalPanel>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0908] text-stone-300 p-4">
+    <div className="min-h-screen bg-black text-green-400 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => navigate(`/game/${characterId}`)}
-            className="flex items-center gap-2 px-3 py-1 text-stone-400 hover:text-amber-400 font-mono text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Game
-          </button>
-          <h1 className="text-xl font-bold text-amber-400 font-mono">INVENTORY</h1>
+        <div className="flex items-center justify-between mb-4">
+          <TerminalButton variant="secondary" onClick={() => navigate(`/game/${characterId}`)}>
+            [←] Back
+          </TerminalButton>
+          <h1 className="text-xl font-bold text-yellow-400 font-mono uppercase tracking-wider">
+            Inventory
+          </h1>
           <div className="w-24" />
         </div>
 
         {/* Gold Display */}
-        <div className="mb-6 bg-stone-900/30 border border-stone-700 p-3 text-center">
-          <div className="font-mono text-sm">
-            <span className="text-stone-500">Gold:</span>{" "}
-            <span className="text-yellow-500 font-bold">{character.gold.toLocaleString()}</span>
+        <TerminalPanel variant="yellow" className="mb-6">
+          <div className="text-center font-mono text-sm">
+            <span className="text-yellow-600">Gold:</span>{" "}
+            <span className="text-yellow-400 font-bold">{character.gold.toLocaleString()} G</span>
           </div>
-        </div>
+        </TerminalPanel>
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -580,44 +569,51 @@ export default function Inventory() {
         </div>
 
         {/* Inventory Stats */}
-        <div className="mt-6 bg-stone-900/30 border border-stone-700 p-4">
-          <div className="font-mono text-xs text-stone-600 text-center mb-2">
-            ═══ INVENTORY SUMMARY ═══
+        <TerminalPanel variant="green" className="mt-6">
+          <div className="font-mono text-xs text-green-600 text-center mb-2 uppercase">
+            ═══ Inventory Summary ═══
           </div>
           <div className="flex justify-center gap-8 font-mono text-xs">
             <span>
-              <span className="text-stone-500">Items:</span>{" "}
-              <span className="text-amber-400">{displayBagItems.length}/24</span>
+              <span className="text-green-600">Items:</span>{" "}
+              <span className="text-green-400">{displayBagItems.length}/24</span>
             </span>
             <span>
-              <span className="text-stone-500">Equipped:</span>{" "}
-              <span className="text-green-400">
+              <span className="text-green-600">Equipped:</span>{" "}
+              <span className="text-cyan-400">
                 {Object.values(displayEquippedItems).filter(Boolean).length}/15
               </span>
             </span>
             <span>
-              <span className="text-stone-500">Total Value:</span>{" "}
-              <span className="text-yellow-500">
+              <span className="text-green-600">Total Value:</span>{" "}
+              <span className="text-yellow-400">
                 {displayBagItems.reduce((sum, item) => sum + (item.sellPrice || 0), 0)}g
               </span>
             </span>
           </div>
-        </div>
+        </TerminalPanel>
 
         {/* Quick Actions */}
         <div className="mt-4 flex justify-center gap-4">
-          <button
+          <TerminalButton
+            variant="secondary"
             onClick={() => navigate(`/character/${characterId}/stats`)}
-            className="px-4 py-2 bg-stone-800 border border-stone-700 text-stone-400 font-mono text-xs hover:border-amber-700 hover:text-amber-400 transition-colors"
           >
-            Character Sheet
-          </button>
-          <button
+            [☺] Character Sheet
+          </TerminalButton>
+          <TerminalButton
+            variant="primary"
             onClick={() => navigate(`/game/${characterId}`)}
-            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-xs hover:bg-amber-900/50 transition-colors"
           >
-            Return to Game
-          </button>
+            [▶] Return to Game
+          </TerminalButton>
+        </div>
+
+        {/* ASCII Footer */}
+        <div className="mt-8 text-center">
+          <pre className="text-green-800 text-xs leading-tight">
+            {"═".repeat(50)}
+          </pre>
         </div>
       </div>
 

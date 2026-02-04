@@ -3,7 +3,6 @@ import { useParams, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { api, buildUrl } from "@shared/routes";
 import {
-  ArrowLeft,
   Lock,
   Castle,
   Skull,
@@ -16,6 +15,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { DungeonCardSkeleton } from "@/components/game/LoadingStates";
+import { TerminalPanel, TerminalButton } from "@/components/game/TerminalPanel";
 
 // ============================================================================
 // DUNGEON SELECTION PAGE - List of available dungeons
@@ -269,7 +269,7 @@ function DungeonCard({
           <div className="flex items-center gap-3">
             <DungeonPortal isLocked={isLocked} />
             <div>
-              <h3 className="text-lg font-bold font-mono text-amber-400 flex items-center gap-2">
+              <h3 className="text-lg font-bold font-mono text-green-400 flex items-center gap-2">
                 {isLocked && <Lock className="w-4 h-4 text-stone-500" />}
                 {dungeon.name}
               </h3>
@@ -359,7 +359,7 @@ function DungeonCard({
               <span>Completed {dungeon.completionCount}x</span>
             </div>
             {dungeon.bestTime && (
-              <span className="text-amber-400">
+              <span className="text-green-400">
                 Best: {Math.floor(dungeon.bestTime / 60)}:{String(dungeon.bestTime % 60).padStart(2, "0")}
               </span>
             )}
@@ -380,7 +380,7 @@ function DungeonCard({
               "w-full py-3 font-mono text-sm border-2 transition-all flex items-center justify-center gap-2",
               isOverleveled
                 ? "bg-stone-800 border-stone-600 text-stone-400 hover:border-stone-500"
-                : "bg-amber-900/30 border-amber-700 text-amber-400 hover:bg-amber-900/50"
+                : "bg-amber-900/30 border-amber-700 text-green-400 hover:bg-amber-900/50"
             )}
           >
             <Castle className="w-4 h-4" />
@@ -454,7 +454,7 @@ export default function DungeonSelection() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0908] p-4">
+      <div className="min-h-screen bg-black p-4">
         <div className="max-w-6xl mx-auto">
           {/* Header skeleton */}
           <div className="flex items-center justify-between mb-6">
@@ -475,7 +475,7 @@ export default function DungeonSelection() {
 
   if (characterError || dungeonsError) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
         <pre className="font-mono text-xs leading-tight text-red-500">
 {`╔════════════════════════════════╗
 ║      ERROR LOADING DATA        ║
@@ -487,13 +487,13 @@ export default function DungeonSelection() {
         <div className="flex gap-4">
           <button
             onClick={() => navigate("/")}
-            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-green-400 font-mono text-sm hover:bg-amber-900/50"
           >
             ← Back to Characters
           </button>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-green-400 font-mono text-sm hover:bg-amber-900/50"
           >
             Retry
           </button>
@@ -504,11 +504,11 @@ export default function DungeonSelection() {
 
   if (!character) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
         <div className="text-red-500 font-mono">Character not found</div>
         <button
           onClick={() => navigate("/")}
-          className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm"
+          className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-green-400 font-mono text-sm"
         >
           Back to Characters
         </button>
@@ -517,47 +517,45 @@ export default function DungeonSelection() {
   }
 
   const unlockedDungeons = dungeons.filter(
-    (d) => character.level >= d.levelRange[0]
+    (d: DungeonData) => character.level >= d.levelRange[0]
   );
   const lockedDungeons = dungeons.filter(
-    (d) => character.level < d.levelRange[0]
+    (d: DungeonData) => character.level < d.levelRange[0]
   );
 
   return (
-    <div className="min-h-screen bg-[#0a0908] text-stone-300 p-4">
+    <div className="min-h-screen bg-black text-stone-300 p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => navigate(`/game/${characterId}`)}
-            className="flex items-center gap-2 px-3 py-1 text-stone-400 hover:text-amber-400 font-mono text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Game
-          </button>
-          <h1 className="text-xl font-bold text-amber-400 font-mono">
-            DUNGEON FINDER
+        <div className="flex items-center justify-between mb-4">
+          <TerminalButton variant="secondary" onClick={() => navigate(`/game/${characterId}`)}>
+            [←] Back
+          </TerminalButton>
+          <h1 className="text-xl font-bold text-yellow-400 font-mono uppercase tracking-wider">
+            Dungeon Finder
           </h1>
           <div className="w-24" />
         </div>
 
         {/* Character Info Bar */}
-        <div className="mb-6 bg-stone-900/50 border border-stone-700 p-4 flex items-center justify-between">
-          <div>
-            <span className="text-stone-500 font-mono text-sm">Character:</span>{" "}
-            <span className="text-amber-400 font-mono">{character.name}</span>
+        <TerminalPanel variant="cyan" className="mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-cyan-600 font-mono text-sm">Character:</span>{" "}
+              <span className="text-cyan-400 font-mono">{character.name}</span>
+            </div>
+            <div>
+              <span className="text-cyan-600 font-mono text-sm">Level:</span>{" "}
+              <span className="text-yellow-400 font-mono">{character.level}</span>
+            </div>
+            <div>
+              <span className="text-cyan-600 font-mono text-sm">Dungeons:</span>{" "}
+              <span className="text-green-400 font-mono">
+                {unlockedDungeons.length}/{DUNGEONS.length}
+              </span>
+            </div>
           </div>
-          <div>
-            <span className="text-stone-500 font-mono text-sm">Level:</span>{" "}
-            <span className="text-green-400 font-mono">{character.level}</span>
-          </div>
-          <div>
-            <span className="text-stone-500 font-mono text-sm">Dungeons Available:</span>{" "}
-            <span className="text-amber-400 font-mono">
-              {unlockedDungeons.length}/{DUNGEONS.length}
-            </span>
-          </div>
-        </div>
+        </TerminalPanel>
 
         {/* Warning */}
         <div className="mb-6 p-3 bg-yellow-900/20 border border-yellow-900/50 flex items-center gap-2">
@@ -574,7 +572,7 @@ export default function DungeonSelection() {
               ═══ AVAILABLE DUNGEONS ═══
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {unlockedDungeons.map((dungeon) => (
+              {unlockedDungeons.map((dungeon: DungeonData) => (
                 <DungeonCard
                   key={dungeon.id}
                   dungeon={dungeon}
@@ -593,7 +591,7 @@ export default function DungeonSelection() {
               ═══ LOCKED DUNGEONS ═══
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {lockedDungeons.map((dungeon) => (
+              {lockedDungeons.map((dungeon: DungeonData) => (
                 <DungeonCard
                   key={dungeon.id}
                   dungeon={dungeon}
@@ -609,7 +607,7 @@ export default function DungeonSelection() {
         <div className="mt-8 text-center">
           <button
             onClick={() => navigate(`/game/${characterId}`)}
-            className="px-6 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50 transition-colors"
+            className="px-6 py-2 bg-amber-900/30 border border-amber-700 text-green-400 font-mono text-sm hover:bg-amber-900/50 transition-colors"
           >
             Return to Game
           </button>

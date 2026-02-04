@@ -304,7 +304,7 @@ export default function CharacterCreate() {
                 [←] Cancel
               </TerminalButton>
               <TerminalButton
-                onClick={handleSubmit}
+                onClick={() => handleSubmit({ preventDefault: () => {} } as React.FormEvent)}
                 variant="primary"
                 disabled={!name.trim() || !selectedClass || createCharacterMutation.isPending}
                 className="flex-1"
