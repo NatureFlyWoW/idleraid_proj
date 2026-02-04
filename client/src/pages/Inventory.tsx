@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { api, buildUrl } from "@shared/routes";
 import { InventoryGridSkeleton, ItemSlotSkeleton } from "@/components/game/LoadingStates";
 import { ASCIIHeader, TerminalPanel, TerminalButton } from "@/components/game/TerminalPanel";
+import { ItemSprite, mapSlotToItemType } from "@/components/game/items";
 
 // ============================================================================
 // INVENTORY PAGE - Grid of items with tooltips
@@ -213,22 +214,13 @@ function InventorySlot({
       onClick={onClick}
     >
       {item ? (
-        <div
-          className="w-8 h-8 flex items-center justify-center text-lg font-mono"
-          style={{ color: rarityColor }}
-        >
-          {/* Simple ASCII icon based on slot */}
-          {item.slot === "mainHand" || item.slot === "offHand" || item.slot === "twoHand"
-            ? "⚔"
-            : item.slot === "head"
-            ? "◊"
-            : item.slot === "chest"
-            ? "▣"
-            : item.slot === "ring"
-            ? "○"
-            : item.slot === "trinket"
-            ? "✧"
-            : "▪"}
+        <div className="w-8 h-8 flex items-center justify-center overflow-hidden">
+          <ItemSprite
+            itemType={mapSlotToItemType(item.slot)}
+            rarity={item.rarity as "common" | "uncommon" | "rare" | "epic" | "legendary"}
+            size="small"
+            showGlow={item.rarity !== "common"}
+          />
         </div>
       ) : (
         <div className="text-green-900 text-xs">·</div>

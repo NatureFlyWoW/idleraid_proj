@@ -7,6 +7,21 @@
 
 ## Latest Update
 
+## [2026-02-04 16:25]
+- Completed:
+  - **Task 2.4: Inventory Item Sprite Integration**
+    - Integrated ItemSprite component into Inventory.tsx
+    - Replaced Unicode icons (⚔, ◊, ▣, ○, ✧) with procedural ASCII sprites
+    - Items now show detailed sprite based on slot type
+    - Rarity-based glow effect on non-common items
+    - Automatic sprite selection via mapSlotToItemType()
+- Changed:
+  - `client/src/pages/Inventory.tsx` (MODIFIED - ItemSprite integration)
+- Needs from Coordinator: None
+- Needs from other agents: None
+- Blocked on: Nothing
+- Next: Visual QA testing
+
 ## [2026-02-04 12:00]
 - Completed:
   - **COMPLETE ASCII ART OVERHAUL:**
