@@ -337,9 +337,13 @@ function QuestCard({
 function QuestDetails({
   quest,
   onAbandon,
+  onComplete,
+  isCompleting,
 }: {
   quest: Quest;
   onAbandon: () => void;
+  onComplete: () => void;
+  isCompleting: boolean;
 }) {
   const totalObjectives = quest.objectives.length;
   const completedObjectives = quest.objectives.filter((o) => o.completed).length;
@@ -525,8 +529,17 @@ function QuestDetails({
       {/* Actions */}
       <div className="p-4 flex gap-2">
         {isReadyToTurnIn ? (
-          <button className="flex-1 py-3 font-mono text-sm bg-green-900/30 border-2 border-green-700 text-green-400 hover:bg-green-900/50 transition-all">
-            Turn In Quest
+          <button
+            onClick={onComplete}
+            disabled={isCompleting}
+            className={cn(
+              "flex-1 py-3 font-mono text-sm border-2 transition-all",
+              isCompleting
+                ? "bg-stone-800/50 border-stone-600 text-stone-500 cursor-wait"
+                : "bg-green-900/30 border-green-700 text-green-400 hover:bg-green-900/50"
+            )}
+          >
+            {isCompleting ? "[ Completing... ]" : "[ Turn In Quest ]"}
           </button>
         ) : (
           <div className="flex-1 py-3 font-mono text-sm text-center bg-stone-800/50 border border-stone-700 text-stone-500">
@@ -640,6 +653,60 @@ export default function QuestLog() {
   if (!selectedQuestId && quests.length > 0) {
     setSelectedQuestId(quests[0].id);
   }
+
+  // State for showing reward notification
+  const [rewardNotification, setRewardNotification] = useState<{
+    xp: number;
+    gold: number;
+    items: { name: string; rarity: string }[];
+    leveledUp: boolean;
+    newLevel?: number;
+  } | null>(null);
+
+  // Complete quest mutation
+  const completeMutation = useMutation({
+    mutationFn: async (questId: string) => {
+      const response = await fetch(
+        buildUrl(api.quests.complete.path, {
+          characterId,
+          questId: parseInt(questId),
+        }),
+        {
+          method: "POST",
+        }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to complete quest");
+      }
+      return response.json() as Promise<{
+        success: boolean;
+        xpAwarded: number;
+        goldAwarded: number;
+        itemsAwarded: { id: number; name: string; rarity: string }[];
+        leveledUp: boolean;
+        newLevel?: number;
+      }>;
+    },
+    onSuccess: (data) => {
+      // Show reward notification
+      setRewardNotification({
+        xp: data.xpAwarded,
+        gold: data.goldAwarded,
+        items: data.itemsAwarded,
+        leveledUp: data.leveledUp,
+        newLevel: data.newLevel,
+      });
+      // Refresh quests and character data
+      queryClient.invalidateQueries({ queryKey: ["activeQuests", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["character", characterId] });
+      // Clear selection
+      setSelectedQuestId(null);
+    },
+    onError: (error: Error) => {
+      alert(error.message);
+    },
+  });
 
   // Abandon quest mutation
   const abandonMutation = useMutation({
@@ -855,6 +922,8 @@ export default function QuestLog() {
                 <QuestDetails
                   quest={selectedQuest}
                   onAbandon={() => handleAbandon(selectedQuest.id)}
+                  onComplete={() => completeMutation.mutate(selectedQuest.id)}
+                  isCompleting={completeMutation.isPending}
                 />
               ) : (
                 <div className="bg-stone-900/50 border-2 border-stone-700 h-full flex items-center justify-center">
@@ -876,6 +945,68 @@ export default function QuestLog() {
             Return to Game
           </button>
         </div>
+
+        {/* Reward Notification Modal */}
+        {rewardNotification && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+            <div className="bg-stone-900 border-2 border-green-700 p-6 max-w-md w-full mx-4">
+              <div className="text-center">
+                <pre className="font-mono text-xs text-green-400 leading-tight mb-4">
+{`╔══════════════════════════════════════╗
+║        QUEST COMPLETE!               ║
+╚══════════════════════════════════════╝`}
+                </pre>
+
+                {rewardNotification.leveledUp && (
+                  <div className="mb-4 p-3 bg-yellow-900/30 border border-yellow-700">
+                    <div className="text-yellow-400 font-mono text-lg">
+                      ★ LEVEL UP! ★
+                    </div>
+                    <div className="text-yellow-300 font-mono text-sm">
+                      You are now level {rewardNotification.newLevel}!
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-stone-400 font-mono text-sm mb-4">
+                  Rewards Earned:
+                </div>
+
+                <div className="space-y-2 mb-6">
+                  {rewardNotification.xp > 0 && (
+                    <div className="flex items-center justify-center gap-2 text-purple-400 font-mono">
+                      <Star className="w-4 h-4" />
+                      <span>+{rewardNotification.xp} XP</span>
+                    </div>
+                  )}
+                  {rewardNotification.gold > 0 && (
+                    <div className="flex items-center justify-center gap-2 text-yellow-400 font-mono">
+                      <Coins className="w-4 h-4" />
+                      <span>+{rewardNotification.gold} Gold</span>
+                    </div>
+                  )}
+                  {rewardNotification.items.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-center gap-2 font-mono"
+                      style={{ color: RARITY_COLORS[item.rarity] || RARITY_COLORS.common }}
+                    >
+                      <Gift className="w-4 h-4" />
+                      <span>{item.name}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setRewardNotification(null)}
+                  className="px-6 py-2 bg-green-900/30 border border-green-700 text-green-400 font-mono text-sm hover:bg-green-900/50 transition-colors"
+                >
+                  [ Continue ]
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
