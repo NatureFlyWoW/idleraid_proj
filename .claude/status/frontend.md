@@ -7,6 +7,25 @@
 
 ## Latest Update
 
+## [2026-02-04 17:15]
+- Completed:
+  - **QuestLog Turn-In Integration**
+    - Added completeMutation to call `api.quests.complete` endpoint
+    - "Turn In Quest" button now functional - calls API on click
+    - Loading state shown during quest completion
+    - Added reward notification modal after completion
+    - Modal shows XP earned, gold earned, items received
+    - Level-up announcement included if character leveled
+    - Invalidates character and quest queries after completion
+- Changed:
+  - `client/src/pages/QuestLog.tsx` (MODIFIED - +133 lines)
+- Needs from Coordinator: None
+- Needs from other agents: None
+- Blocked on: Nothing
+- Next: Consider fetching actual quest definitions from API instead of SAMPLE_QUESTS fallback
+
+---
+
 ## [2026-02-04 16:25]
 - Completed:
   - **Task 2.4: Inventory Item Sprite Integration**
