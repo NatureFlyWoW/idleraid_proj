@@ -106,8 +106,9 @@ export function setupAuth(app: Express): void {
 
 // ============= AUTH MIDDLEWARE =============
 
-// Dev mode flag - set to true to bypass authentication for testing
-const DEV_MODE = process.env.NODE_ENV !== 'production';
+// Dev mode flag - only bypass auth in explicit development mode
+// In test mode (NODE_ENV='test'), auth works normally so tests can verify auth behavior
+const DEV_MODE = process.env.NODE_ENV === 'development';
 let devUser: User | null = null;
 
 /**
