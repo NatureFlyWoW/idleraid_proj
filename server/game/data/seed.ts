@@ -8,6 +8,7 @@ import {
   dungeons,
   dungeonBosses,
   itemTemplates,
+  itemSets,
   factions,
 } from '@shared/schema';
 
@@ -318,8 +319,8 @@ const STARTING_DUNGEONS = [
   },
 ];
 
-// Cindermaw Caverns bosses - loot table itemId references STARTING_ITEMS array index + 1
-// Items 14-20 are Cindermaw drops
+// Cindermaw Caverns bosses - loot table itemId references array index + 1
+// Items 14-20 are regular Cindermaw drops, items 31-35 are Cindermaw Battlegear set pieces
 const CINDERMAW_BOSSES = [
   {
     name: 'Flamewarden Gorrak',
@@ -335,6 +336,7 @@ const CINDERMAW_BOSSES = [
     lootTable: [
       { itemId: 14, dropChance: 0.20 }, // Flamewarden's Torch
       { itemId: 15, dropChance: 0.15 }, // Cultist's Cindercloth Robe
+      { itemId: 31, dropChance: 0.18 }, // Cindermaw Greathelm (set piece)
     ],
   },
   {
@@ -352,6 +354,8 @@ const CINDERMAW_BOSSES = [
     lootTable: [
       { itemId: 16, dropChance: 0.20 }, // Molten Core Fragment
       { itemId: 17, dropChance: 0.15 }, // Magma-Forged Bracers
+      { itemId: 32, dropChance: 0.20 }, // Cindermaw Pauldrons (set piece)
+      { itemId: 34, dropChance: 0.18 }, // Cindermaw Gauntlets (set piece)
     ],
   },
   {
@@ -371,6 +375,8 @@ const CINDERMAW_BOSSES = [
       { itemId: 18, dropChance: 0.25 }, // Pyroclast's Infernal Blade
       { itemId: 19, dropChance: 0.20 }, // Crown of Cinders
       { itemId: 20, dropChance: 0.15 }, // Lavawalker Boots
+      { itemId: 33, dropChance: 0.15 }, // Cindermaw Breastplate (set piece)
+      { itemId: 35, dropChance: 0.18 }, // Cindermaw Greaves (set piece)
     ],
   },
 ];
@@ -433,8 +439,8 @@ const DEADMINES_BOSSES = [
   },
 ];
 
-// Serpent's Lament bosses - loot table itemId references STARTING_ITEMS array index + 1
-// Items 21-30 are Serpent's Lament drops
+// Serpent's Lament bosses - loot table itemId references array index + 1
+// Items 21-30 are regular drops, items 36-40 are Serpentscale Vestments set pieces
 const SERPENT_BOSSES = [
   {
     name: 'Viper Lord Sethrix',
@@ -450,6 +456,7 @@ const SERPENT_BOSSES = [
     lootTable: [
       { itemId: 21, dropChance: 0.20 }, // Serpent Fang Dagger
       { itemId: 22, dropChance: 0.15 }, // Venom-Stained Bracers
+      { itemId: 37, dropChance: 0.20 }, // Serpentscale Spaulders (set piece)
     ],
   },
   {
@@ -467,6 +474,7 @@ const SERPENT_BOSSES = [
     lootTable: [
       { itemId: 23, dropChance: 0.20 }, // Anacondria's Nature Staff
       { itemId: 24, dropChance: 0.15 }, // Serpent Scale Shoulders
+      { itemId: 36, dropChance: 0.18 }, // Serpentscale Hood (set piece)
     ],
   },
   {
@@ -484,6 +492,7 @@ const SERPENT_BOSSES = [
     lootTable: [
       { itemId: 25, dropChance: 0.20 }, // Dreamweaver's Cord
       { itemId: 26, dropChance: 0.15 }, // Nightmare's Edge
+      { itemId: 39, dropChance: 0.22 }, // Serpentscale Gloves (set piece)
     ],
   },
   {
@@ -505,6 +514,8 @@ const SERPENT_BOSSES = [
       { itemId: 28, dropChance: 0.25 }, // Living Root Vest
       { itemId: 29, dropChance: 0.20 }, // Evergreen Mantle
       { itemId: 30, dropChance: 0.10 }, // Thorn-Studded Legguards
+      { itemId: 38, dropChance: 0.15 }, // Serpentscale Tunic (set piece)
+      { itemId: 40, dropChance: 0.18 }, // Serpentscale Leggings (set piece)
     ],
   },
 ];
@@ -1006,6 +1017,200 @@ const STARTING_FACTIONS = [
   },
 ];
 
+// ============= ITEM SETS =============
+
+type SetBonus = {
+  pieces: number;
+  description: string;
+  stats?: Record<string, number>;
+  effect?: string;
+};
+
+const ITEM_SET_DEFINITIONS: Array<{
+  name: string;
+  classRestriction: 'warrior' | 'paladin' | 'hunter' | 'rogue' | 'priest' | 'mage' | 'druid' | null;
+  bonuses: SetBonus[];
+}> = [
+  {
+    name: 'Cindermaw Battlegear',
+    classRestriction: null, // Warriors and Paladins can use plate
+    bonuses: [
+      { pieces: 2, description: '+15 Fire Resistance', stats: { fireResistance: 15 } },
+      { pieces: 3, description: '+5% Block Value', stats: { blockValue: 5 } },
+      { pieces: 5, description: 'Melee attacks have 8% chance to deal 75 Fire damage', effect: 'fire_proc' },
+    ],
+  },
+  {
+    name: 'Serpentscale Vestments',
+    classRestriction: 'druid',
+    bonuses: [
+      { pieces: 2, description: '+8 MP5 (mana per 5 seconds)', stats: { mp5: 8 } },
+      { pieces: 3, description: '+3% healing done', stats: { healingBonus: 3 } },
+      { pieces: 5, description: 'Your heals have 10% chance to restore 50 mana', effect: 'mana_proc' },
+    ],
+  },
+];
+
+// Set items are added at the end of STARTING_ITEMS with setIndex references
+// setIndex 1 = Cindermaw Battlegear, setIndex 2 = Serpentscale Vestments
+const SET_ITEMS = [
+  // ============= CINDERMAW BATTLEGEAR (Plate Tank Set, levels 20-25) =============
+  // Set Index: 1
+  {
+    name: 'Cindermaw Greathelm',
+    description: 'A helm forged in the heart of Cindermaw Caverns, radiating residual heat.',
+    slot: 'head' as const,
+    rarity: 'rare' as const,
+    itemLevel: 22,
+    requiredLevel: 20,
+    armor: 420,
+    stamina: 18,
+    strength: 12,
+    setIndex: 1,
+    dropSource: 'Flamewarden Gorrak',
+    sellPrice: 180,
+  },
+  {
+    name: 'Cindermaw Pauldrons',
+    description: 'Shoulder guards shaped from volcanic rock and tempered steel.',
+    slot: 'shoulders' as const,
+    rarity: 'rare' as const,
+    itemLevel: 23,
+    requiredLevel: 20,
+    armor: 380,
+    stamina: 15,
+    strength: 10,
+    setIndex: 1,
+    dropSource: 'Molten Lurker',
+    sellPrice: 165,
+  },
+  {
+    name: 'Cindermaw Breastplate',
+    description: 'A massive chestpiece adorned with smoldering runes of protection.',
+    slot: 'chest' as const,
+    rarity: 'rare' as const,
+    itemLevel: 25,
+    requiredLevel: 22,
+    armor: 520,
+    stamina: 22,
+    strength: 15,
+    setIndex: 1,
+    dropSource: 'Pyroclast the Burning',
+    sellPrice: 225,
+  },
+  {
+    name: 'Cindermaw Gauntlets',
+    description: 'Heavy gauntlets that glow faintly with inner fire.',
+    slot: 'hands' as const,
+    rarity: 'rare' as const,
+    itemLevel: 21,
+    requiredLevel: 19,
+    armor: 340,
+    stamina: 12,
+    strength: 8,
+    attackPower: 10,
+    setIndex: 1,
+    dropSource: 'Molten Lurker',
+    sellPrice: 145,
+  },
+  {
+    name: 'Cindermaw Greaves',
+    description: 'Leg armor reinforced with molten-cooled iron plating.',
+    slot: 'legs' as const,
+    rarity: 'rare' as const,
+    itemLevel: 24,
+    requiredLevel: 21,
+    armor: 460,
+    stamina: 20,
+    strength: 14,
+    setIndex: 1,
+    dropSource: 'Pyroclast the Burning',
+    sellPrice: 195,
+  },
+
+  // ============= SERPENTSCALE VESTMENTS (Leather Healer Set, levels 20-25) =============
+  // Set Index: 2
+  {
+    name: 'Serpentscale Hood',
+    description: 'A hooded helm crafted from the scales of an ancient serpent.',
+    slot: 'head' as const,
+    rarity: 'rare' as const,
+    itemLevel: 23,
+    requiredLevel: 20,
+    classRestriction: 'druid' as const,
+    armor: 180,
+    intellect: 16,
+    spirit: 14,
+    spellPower: 18,
+    setIndex: 2,
+    dropSource: 'Lady Anacondria',
+    sellPrice: 175,
+  },
+  {
+    name: 'Serpentscale Spaulders',
+    description: 'Shoulder pads woven from iridescent serpent scales.',
+    slot: 'shoulders' as const,
+    rarity: 'rare' as const,
+    itemLevel: 22,
+    requiredLevel: 19,
+    classRestriction: 'druid' as const,
+    armor: 160,
+    intellect: 12,
+    spirit: 12,
+    setIndex: 2,
+    dropSource: 'Viper Lord Sethrix',
+    sellPrice: 160,
+  },
+  {
+    name: 'Serpentscale Tunic',
+    description: 'A vest of interlocking scales imbued with nature magic.',
+    slot: 'chest' as const,
+    rarity: 'rare' as const,
+    itemLevel: 25,
+    requiredLevel: 22,
+    classRestriction: 'druid' as const,
+    armor: 220,
+    intellect: 20,
+    spirit: 18,
+    spellPower: 25,
+    setIndex: 2,
+    dropSource: 'Verdan the Evergrowing',
+    sellPrice: 220,
+  },
+  {
+    name: 'Serpentscale Gloves',
+    description: 'Delicate gloves that enhance the wearer\'s healing touch.',
+    slot: 'hands' as const,
+    rarity: 'rare' as const,
+    itemLevel: 21,
+    requiredLevel: 18,
+    classRestriction: 'druid' as const,
+    armor: 140,
+    intellect: 10,
+    spirit: 10,
+    critRating: 8,
+    setIndex: 2,
+    dropSource: 'Pythonas the Dreamer',
+    sellPrice: 140,
+  },
+  {
+    name: 'Serpentscale Leggings',
+    description: 'Leg armor alive with the essence of the serpent lords.',
+    slot: 'legs' as const,
+    rarity: 'rare' as const,
+    itemLevel: 24,
+    requiredLevel: 21,
+    classRestriction: 'druid' as const,
+    armor: 200,
+    intellect: 18,
+    spirit: 15,
+    spellPower: 20,
+    setIndex: 2,
+    dropSource: 'Verdan the Evergrowing',
+    sellPrice: 190,
+  },
+];
+
 // Map dungeons to their bosses for seeding
 const DUNGEON_BOSSES_MAP: Record<string, typeof CINDERMAW_BOSSES> = {
   'Cindermaw Caverns': CINDERMAW_BOSSES,
@@ -1038,10 +1243,29 @@ export async function seedStartingContent(): Promise<void> {
   }));
   await db.insert(quests).values(questsWithZoneIds);
 
+  // Seed item sets
+  console.log('Seeding item sets...');
+  const insertedSets = await db.insert(itemSets).values(ITEM_SET_DEFINITIONS).returning();
+  const setIdMap = new Map(insertedSets.map((set, i) => [i + 1, set.id]));
+
+  // Prepare set items with actual set IDs
+  const setItemsWithSetIds = SET_ITEMS.map(item => {
+    const { setIndex, ...rest } = item;
+    return {
+      ...rest,
+      setId: setIndex ? setIdMap.get(setIndex) : undefined,
+    };
+  });
+
+  // Combine all items
+  const allItems = [...STARTING_ITEMS, ...setItemsWithSetIds];
+
   // Seed items
   console.log('Seeding item templates...');
-  const insertedItems = await db.insert(itemTemplates).values(STARTING_ITEMS).returning();
+  const insertedItems = await db.insert(itemTemplates).values(allItems).returning();
   const itemIdMap = new Map(insertedItems.map((item, i) => [i + 1, item.id]));
+  // Also map by name for set item lookups
+  const itemByNameMap = new Map(insertedItems.map(item => [item.name, item.id]));
 
   // Seed dungeons
   console.log('Seeding dungeons...');
@@ -1074,7 +1298,8 @@ export async function seedStartingContent(): Promise<void> {
   console.log('Seed complete! Created:');
   console.log(`  - ${STARTING_ZONES.length} zones`);
   console.log(`  - ${STARTING_QUESTS.length} quests`);
-  console.log(`  - ${STARTING_ITEMS.length} item templates`);
+  console.log(`  - ${allItems.length} item templates (${STARTING_ITEMS.length} base + ${SET_ITEMS.length} set pieces)`);
+  console.log(`  - ${ITEM_SET_DEFINITIONS.length} item sets`);
   console.log(`  - ${STARTING_DUNGEONS.length} dungeons with ${totalBosses} bosses total`);
   console.log(`  - ${STARTING_FACTIONS.length} factions`);
 }
