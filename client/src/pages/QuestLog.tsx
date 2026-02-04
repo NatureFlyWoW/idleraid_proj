@@ -4,7 +4,6 @@ import { useParams, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { api, buildUrl } from "@shared/routes";
 import {
-  ArrowLeft,
   Scroll,
   Target,
   Gift,
@@ -18,6 +17,7 @@ import {
   Star,
 } from "lucide-react";
 import { QuestCardSkeleton } from "@/components/game/LoadingStates";
+import { TerminalPanel, TerminalButton } from "@/components/game/TerminalPanel";
 
 // ============================================================================
 // QUEST LOG PAGE - Active quests with details and progress
@@ -286,12 +286,12 @@ function QuestCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             {quest.isMainQuest && (
-              <Star className="w-3 h-3 text-amber-400 flex-shrink-0" />
+              <Star className="w-3 h-3 text-yellow-400 flex-shrink-0" />
             )}
             <h3
               className={cn(
                 "font-mono text-sm truncate",
-                isReadyToTurnIn ? "text-green-400" : "text-amber-400"
+                isReadyToTurnIn ? "text-green-400" : "text-yellow-400"
               )}
             >
               {quest.name}
@@ -354,11 +354,11 @@ function QuestDetails({
         style={{ borderLeftWidth: 4, borderLeftColor: difficultyConfig.color }}
       >
         <div className="flex items-center gap-2 mb-1">
-          {quest.isMainQuest && <Star className="w-4 h-4 text-amber-400" />}
+          {quest.isMainQuest && <Star className="w-4 h-4 text-yellow-400" />}
           <h2
             className={cn(
               "text-lg font-bold font-mono",
-              isReadyToTurnIn ? "text-green-400" : "text-amber-400"
+              isReadyToTurnIn ? "text-green-400" : "text-yellow-400"
             )}
           >
             {quest.name}
@@ -634,7 +634,7 @@ export default function QuestLog() {
         })
       : SAMPLE_QUESTS; // Fallback to sample data
 
-  const selectedQuest = quests.find((q) => q.id === selectedQuestId);
+  const selectedQuest = quests.find((q: Quest) => q.id === selectedQuestId);
 
   // Auto-select first quest if none selected
   if (!selectedQuestId && quests.length > 0) {
@@ -676,7 +676,7 @@ export default function QuestLog() {
 
   if (characterLoading || questsLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0908] p-4">
+      <div className="min-h-screen bg-black p-4">
         <div className="max-w-7xl mx-auto">
           {/* Header skeleton */}
           <div className="flex items-center justify-between mb-6">
@@ -717,7 +717,7 @@ export default function QuestLog() {
 
   if (characterError || questsError) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
         <pre className="font-mono text-xs leading-tight text-red-500">
 {`╔════════════════════════════════╗
 ║      ERROR LOADING DATA        ║
@@ -729,13 +729,13 @@ export default function QuestLog() {
         <div className="flex gap-4">
           <button
             onClick={() => navigate("/")}
-            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-yellow-400 font-mono text-sm hover:bg-amber-900/50"
           >
             ← Back to Characters
           </button>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50"
+            className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-yellow-400 font-mono text-sm hover:bg-amber-900/50"
           >
             Retry
           </button>
@@ -746,11 +746,11 @@ export default function QuestLog() {
 
   if (!character) {
     return (
-      <div className="min-h-screen bg-[#0a0908] flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
         <div className="text-red-500 font-mono">Character not found</div>
         <button
           onClick={() => navigate("/")}
-          className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm"
+          className="px-4 py-2 bg-amber-900/30 border border-amber-700 text-yellow-400 font-mono text-sm"
         >
           Back to Characters
         </button>
@@ -759,53 +759,49 @@ export default function QuestLog() {
   }
 
   // Separate main quests and side quests
-  const mainQuests = quests.filter((q) => q.isMainQuest);
-  const sideQuests = quests.filter((q) => !q.isMainQuest);
+  const mainQuests = quests.filter((q: Quest) => q.isMainQuest);
+  const sideQuests = quests.filter((q: Quest) => !q.isMainQuest);
   const readyQuests = quests.filter(
-    (q) => q.objectives.every((o) => o.completed)
+    (q: Quest) => q.objectives.every((o: QuestObjective) => o.completed)
   );
 
   return (
-    <div className="min-h-screen bg-[#0a0908] text-stone-300 p-4">
+    <div className="min-h-screen bg-black text-stone-300 p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => navigate(`/game/${characterId}`)}
-            className="flex items-center gap-2 px-3 py-1 text-stone-400 hover:text-amber-400 font-mono text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Game
-          </button>
-          <h1 className="text-xl font-bold text-amber-400 font-mono">
-            QUEST LOG
+        <div className="flex items-center justify-between mb-4">
+          <TerminalButton variant="secondary" onClick={() => navigate(`/game/${characterId}`)}>
+            [←] Back
+          </TerminalButton>
+          <h1 className="text-xl font-bold text-yellow-400 font-mono uppercase tracking-wider">
+            Quest Log
           </h1>
           <div className="w-24" />
         </div>
 
         {/* Character Info Bar */}
-        <div className="mb-6 bg-stone-900/50 border border-stone-700 p-4 flex items-center justify-between">
-          <div>
-            <span className="text-stone-500 font-mono text-sm">Character:</span>{" "}
-            <span className="text-amber-400 font-mono">{character.name}</span>
+        <TerminalPanel variant="yellow" className="mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-yellow-600 font-mono text-sm">Character:</span>{" "}
+              <span className="text-yellow-400 font-mono">{character.name}</span>
+            </div>
+            <div>
+              <span className="text-yellow-600 font-mono text-sm">Level:</span>{" "}
+              <span className="text-green-400 font-mono">{character.level}</span>
+            </div>
+            <div>
+              <span className="text-yellow-600 font-mono text-sm">Active:</span>{" "}
+              <span className="text-yellow-400 font-mono">{quests.length}/25</span>
+            </div>
+            <div>
+              <span className="text-yellow-600 font-mono text-sm">Ready:</span>{" "}
+              <span className="text-green-400 font-mono">
+                {readyQuests.length}
+              </span>
+            </div>
           </div>
-          <div>
-            <span className="text-stone-500 font-mono text-sm">Level:</span>{" "}
-            <span className="text-green-400 font-mono">{character.level}</span>
-          </div>
-          <div>
-            <span className="text-stone-500 font-mono text-sm">
-              Active Quests:
-            </span>{" "}
-            <span className="text-amber-400 font-mono">{quests.length}/25</span>
-          </div>
-          <div>
-            <span className="text-stone-500 font-mono text-sm">Ready:</span>{" "}
-            <span className="text-green-400 font-mono">
-              {readyQuests.length}
-            </span>
-          </div>
-        </div>
+        </TerminalPanel>
 
         {quests.length === 0 ? (
           <EmptyQuestLog />
@@ -821,7 +817,7 @@ export default function QuestLog() {
                     MAIN QUESTS ({mainQuests.length})
                   </div>
                   <div className="space-y-1">
-                    {mainQuests.map((quest) => (
+                    {mainQuests.map((quest: Quest) => (
                       <QuestCard
                         key={quest.id}
                         quest={quest}
@@ -840,7 +836,7 @@ export default function QuestLog() {
                     SIDE QUESTS ({sideQuests.length})
                   </div>
                   <div className="space-y-1">
-                    {sideQuests.map((quest) => (
+                    {sideQuests.map((quest: Quest) => (
                       <QuestCard
                         key={quest.id}
                         quest={quest}
@@ -875,7 +871,7 @@ export default function QuestLog() {
         <div className="mt-8 text-center">
           <button
             onClick={() => navigate(`/game/${characterId}`)}
-            className="px-6 py-2 bg-amber-900/30 border border-amber-700 text-amber-400 font-mono text-sm hover:bg-amber-900/50 transition-colors"
+            className="px-6 py-2 bg-amber-900/30 border border-amber-700 text-yellow-400 font-mono text-sm hover:bg-amber-900/50 transition-colors"
           >
             Return to Game
           </button>
