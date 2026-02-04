@@ -319,3 +319,51 @@
 .animate-loot-drop {
   animation: loot-drop 0.4s ease-out;
 }
+
+/* ============================================
+   ASCII RENDERING COMPONENT LIBRARY STYLES
+   Per .claude/skills/ascii-art-style.md
+   ============================================ */
+
+/* Terminal Base - Apply to all terminal UI containers */
+.terminal-base {
+  background: #000000;
+  color: #00ff00;
+  font-family: 'Courier New', 'Lucida Console', 'Monaco', monospace;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+/* Terminal Text Colors - Semantic usage per style guide */
+.terminal-text-green { color: #00ff00; }      /* Stats, health, positive values */
+.terminal-text-yellow { color: #ffff00; }     /* Selected, highlighted items */
+.terminal-text-magenta { color: #ff00ff; }    /* Bonuses, special abilities */
+.terminal-text-red { color: #ff0000; }        /* Damage, danger, health loss */
+.terminal-text-cyan { color: #00ffff; }       /* Magic, mana, rare items */
+.terminal-text-white { color: #ffffff; }      /* Headers, titles, labels */
+.terminal-text-gray { color: #666666; }       /* Disabled, inactive elements */
+.terminal-text-epic { color: #a335ee; }       /* Epic quality items */
+.terminal-text-legendary { color: #ff8000; }  /* Legendary quality items */
+
+/* Terminal Background Colors */
+.terminal-bg-black { background: #000000; }
+.terminal-bg-dark { background: #0a0a0a; }
+
+/* ASCII Art specific styles */
+.ascii-art {
+  font-family: 'Courier New', 'Lucida Console', 'Monaco', monospace;
+  line-height: 1.1;
+  letter-spacing: 0;
+  white-space: pre;
+}
+
+/* Tight line height for ASCII art (no gaps between lines) */
+.ascii-tight {
+  line-height: 1.1;
+}
+
+/* Preserve whitespace for all ASCII content */
+.ascii-pre {
+  white-space: pre;
+  font-family: 'Courier New', 'Lucida Console', 'Monaco', monospace;
+}
